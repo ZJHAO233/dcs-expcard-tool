@@ -6,6 +6,8 @@
 
 # 3. 使用取反规则（!）保留你需要的后缀文件
 !*.py
+!*.js
+!*.html
 
 # 4. 保留 .gitignore 文件本身
 !.gitignore

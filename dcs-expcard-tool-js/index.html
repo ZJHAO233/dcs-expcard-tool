@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DCS Converter - Excel转Markdown工具</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .upload-area {
+            border: 3px dashed #667eea;
+            border-radius: 12px;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: #f8f9ff;
+        }
+
+        .upload-area:hover {
+            border-color: #764ba2;
+            background: #f0f2ff;
+        }
+
+        .upload-area.dragover {
+            border-color: #764ba2;
+            background: #e8ebff;
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            font-size: 18px;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .upload-hint {
+            font-size: 14px;
+            color: #999;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        label {
+            font-weight: 600;
+            color: #333;
+        }
+
+        select, button {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        select {
+            border: 2px solid #ddd;
+            background: white;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            font-weight: 600;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .output-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 768px) {
+            .output-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .output-panel {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+        }
+
+        .output-panel h3 {
+            margin-bottom: 15px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .output-panel pre {
+            background: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 13px;
+            line-height: 1.6;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        .output-panel textarea {
+            width: 100%;
+            min-height: 400px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            line-height: 1.6;
+            resize: vertical;
+        }
+
+        .sheet-tabs {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .sheet-tab {
+            padding: 8px 16px;
+            border: 2px solid #ddd;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+        }
+
+        .sheet-tab:hover {
+            border-color: #667eea;
+        }
+
+        .sheet-tab.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-color: transparent;
+        }
+
+        .info {
+            background: #e8f4fd;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+            margin-bottom: 20px;
+        }
+
+        .info h4 {
+            color: #667eea;
+            margin-bottom: 8px;
+        }
+
+        .info p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 6px 12px;
+            font-size: 12px;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .copy-btn:hover {
+            background: rgba(255,255,255,0.3);
+        }
+
+        .output-wrapper {
+            position: relative;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 DCS Converter</h1>
+
+        <div class="card">
+            <div class="info">
+                <h4>使用说明</h4>
+                <p>上传Excel文件（.xlsx），选择要转换的Sheet，点击"转换"按钮生成Markdown格式的试验条件文档。</p>
+            </div>
+
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">点击或拖拽Excel文件到此处</div>
+                <div class="upload-hint">支持 .xlsx 格式</div>
+            </div>
+            <input type="file" id="fileInput" accept=".xlsx">
+
+            <div class="controls">
+                <label>选择Sheet：</label>
+                <div class="sheet-tabs" id="sheetTabs"></div>
+                <button id="convertBtn" disabled>转换</button>
+                <button id="downloadBtn" disabled>下载Markdown</button>
+            </div>
+        </div>
+
+        <div class="card output-container">
+            <div class="output-panel">
+                <h3>📊 Excel数据</h3>
+                <div class="output-wrapper">
+                    <pre id="excelPreview">请先上传Excel文件</pre>
+                </div>
+            </div>
+
+            <div class="output-panel">
+                <h3>📝 Markdown输出</h3>
+                <div class="output-wrapper">
+                    <textarea id="markdownOutput" readonly placeholder="转换结果将显示在这里..."></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="convert.js"></script>
+    <script>
+        let workbook = null;
+        let currentSheetIndex = 0;
+        let convertedMarkdown = '';
+
+        // DOM元素
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const sheetTabs = document.getElementById('sheetTabs');
+        const convertBtn = document.getElementById('convertBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const excelPreview = document.getElementById('excelPreview');
+        const markdownOutput = document.getElementById('markdownOutput');
+
+        // 上传区域事件
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', () => {
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const file = e.dataTransfer.files[0];
+            if (file) handleFile(file);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) handleFile(file);
+        });
+
+        // 处理文件
+        function handleFile(file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    workbook = XLSX.read(e.target.result, { type: 'array' });
+                    renderSheetTabs();
+                    selectSheet(0);
+                    convertBtn.disabled = false;
+                    uploadArea.innerHTML = `
+                        <div class="upload-icon">✅</div>
+                        <div class="upload-text">${file.name}</div>
+                        <div class="upload-hint">点击重新选择文件</div>
+                    `;
+                } catch (err) {
+                    alert('文件读取失败：' + err.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // 渲染Sheet标签
+        function renderSheetTabs() {
+            sheetTabs.innerHTML = '';
+            workbook.SheetNames.forEach((name, index) => {
+                const tab = document.createElement('div');
+                tab.className = 'sheet-tab';
+                tab.textContent = name;
+                tab.onclick = () => selectSheet(index);
+                sheetTabs.appendChild(tab);
+            });
+        }
+
+        // 选择Sheet
+        function selectSheet(index) {
+            currentSheetIndex = index;
+            document.querySelectorAll('.sheet-tab').forEach((tab, i) => {
+                tab.classList.toggle('active', i === index);
+            });
+            previewSheet();
+        }
+
+        // 预览Sheet
+        function previewSheet() {
+            const sheet = workbook.Sheets[workbook.SheetNames[currentSheetIndex]];
+            const data = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+            const preview = data.slice(0, 20).map((row, i) => {
+                const cells = (row || []).slice(0, 7).map(cell => {
+                    const val = cell !== undefined && cell !== null ? String(cell).trim() : '';
+                    return val.substring(0, 20);
+                });
+                return `行${i + 1}: [${cells.join(', ')}]`;
+            }).join('\n');
+            excelPreview.textContent = preview || '（空Sheet）';
+        }
+
+        // 转换
+        convertBtn.addEventListener('click', () => {
+            if (!workbook) return;
+
+            const sheet = workbook.Sheets[workbook.SheetNames[currentSheetIndex]];
+            const rawData = XLSX.utils.sheet_to_json(sheet, { header: 1 });
+
+            // 处理数据：只保留前7列，去除首尾空格
+            const rows = rawData.map(row => {
+                const result = [];
+                for (let c = 0; c < 7; c++) {
+                    const val = row[c];
+                    result.push(val !== undefined && val !== null ? String(val).trim() : '');
+                }
+                return result;
+            });
+
+            const converter = new DCSConverter();
+            convertedMarkdown = converter.convert(rows);
+            markdownOutput.value = convertedMarkdown;
+            downloadBtn.disabled = false;
+        });
+
+        // 下载
+        downloadBtn.addEventListener('click', () => {
+            if (!convertedMarkdown) return;
+
+            const blob = new Blob([convertedMarkdown], { type: 'text/markdown;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'output.md';
+            a.click();
+            URL.revokeObjectURL(url);
+        });
+    </script>
+</body>
+</html>

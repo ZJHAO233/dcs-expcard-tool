@@ -10,7 +10,18 @@ class DCSConverter:
 
     SKIP_HEADERS = ['序号', '条件确认']
     SECTION_HEADERS = ['试验条件', '试验恢复', '结论', '存在问题']
-    LOGIC_SEPARATORS = ['与', '或', '或取反']
+
+    # 逻辑运算符字典: 键为Excel中的值, 值为输出时使用的符号
+    # 可在此处补充新的逻辑运算符
+    LOGIC_OPERATORS = {
+        '与': '且',
+        '且': '且',
+        '或': '或',
+        '或取反': '或取反',
+    }
+
+    # 所有可能的逻辑分隔符（用于识别）
+    LOGIC_SEPARATORS = list(LOGIC_OPERATORS.keys())
 
     def __init__(self):
         self.output = []
@@ -45,7 +56,9 @@ class DCSConverter:
         return '\n'.join(self.output)
 
     def _process_row(self, row, all_rows, index):
-        a, b, c = row[0], row[1], row[2] if len(row) > 2 else ''
+        a = row[0] if len(row) > 0 else ''
+        b = row[1] if len(row) > 1 else ''
+        c = row[2] if len(row) > 2 else ''
 
         if not a and not b:
             return
@@ -120,6 +133,10 @@ class DCSConverter:
     def _is_logic_separator(self, text):
         return text in self.LOGIC_SEPARATORS
 
+    def _get_logic_output(self, logic):
+        """获取逻辑运算符的输出格式"""
+        return self.LOGIC_OPERATORS.get(logic, logic)
+
     def _get_content_from_row(self, row, start_col):
         for i in range(start_col, len(row)):
             val = row[i]
@@ -163,87 +180,234 @@ class DCSConverter:
         self.output.append(a + '. ' + content + logic_str)
 
     def _process_level2(self, a, b, c, row, all_rows, index):
-        # C列是子列三级逻辑（标记新分组，也是延续行使用的逻辑）
-        child_logic = c if self._is_logic_separator(c) else None
+        # 子列二级的列含义:
+        # B列: 可能是逻辑分隔符（传递给父级）或内容
+        # C列: 二级分组逻辑 或 三级条件逻辑（当D列也是逻辑分隔符时）或内容
+        # D列: 二级分组内容 或 三级条件逻辑 或内容
+        # E列: 三级条件内容
 
-        # 获取内容
-        # 如果C列是逻辑分隔符，从D列开始找内容
-        # 如果C列不是逻辑分隔符，从B列开始找内容
-        content = None
-        if child_logic:
-            # C列是逻辑分隔符，从D列开始找内容
-            for col_idx in range(3, len(row)):
-                val = row[col_idx]
-                if val and not self._is_logic_separator(val):
-                    content = val
-                    break
-        else:
-            # C列不是逻辑分隔符，从B列开始找内容
-            for col_idx in range(1, len(row)):
-                val = row[col_idx]
-                if val and not self._is_logic_separator(val):
-                    content = val
-                    break
+        # 获取各列的值
+        b_val = b
+        c_val = c
+        d_val = row[3] if len(row) > 3 else ''
+        e_val = row[4] if len(row) > 4 else ''
 
-        if not content:
+        b_is_logic = self._is_logic_separator(b_val)
+        c_is_logic = self._is_logic_separator(c_val)
+        d_is_logic = self._is_logic_separator(d_val)
+
+        # 情况1: C列和D列都是逻辑分隔符 → 三级条件处理
+        # （不管B列是什么）
+        if c_is_logic and d_is_logic:
+            self._process_level3_group(a, c_val, d_val, e_val, row, all_rows, index)
             return
 
-        if child_logic:
-            # 有逻辑分隔符，开始新分组
-            group_items = [content]
-            # 跟踪延续行使用的逻辑（使用C列的逻辑）
-            continuation_logic = child_logic
-            j = index + 1
-            while j < len(all_rows):
-                next_row = all_rows[j]
-                next_a = next_row[0]
-                
-                # 检查是否是同级子项（有编号的）
-                if self._is_sub_item(next_a) and next_a.startswith(a.split('.')[0] + '.'):
-                    next_c = next_row[2] if len(next_row) > 2 else ''
-                    if self._is_logic_separator(next_c):
-                        break
-                    # 获取内容
-                    next_content = None
-                    for col_idx in range(2, len(next_row)):
-                        val = next_row[col_idx]
-                        if val and not self._is_logic_separator(val):
-                            next_content = val
-                            break
-                    if next_content:
-                        group_items.append(next_content)
-                        self.processed_rows.add(j)
-                    j += 1
-                # 检查是否是无编号的延续行（A列为空，C列有内容）
-                elif not next_a and len(next_row) > 2:
-                    next_c = next_row[2] if len(next_row) > 2 else ''
-                    if self._is_logic_separator(next_c):
-                        break
-                    # 获取内容
-                    next_content = None
-                    for col_idx in range(2, len(next_row)):
-                        val = next_row[col_idx]
-                        if val and not self._is_logic_separator(val):
-                            next_content = val
-                            break
-                    if next_content:
-                        group_items.append(next_content)
-                        self.processed_rows.add(j)
-                    j += 1
-                else:
+        # 情况2: C列是逻辑分隔符，D列不是逻辑分隔符 → 二级分组
+        # （不管B列是什么）
+        if c_is_logic and not d_is_logic:
+            self._process_level2_group(a, c_val, d_val, row, all_rows, index)
+            return
+
+        # 情况3: B列是逻辑分隔符
+        if b_is_logic:
+            # C列有内容（不是逻辑分隔符）→ 输出C列内容
+            if c_val and not c_is_logic:
+                self.output.append('   - ' + c_val)
+                return
+            # C列也是逻辑分隔符 → 已在情况1/2处理
+            # C列为空 → 跳过
+            return
+
+        # 情况4: 简单输出
+        # 从B列开始找内容（跳过逻辑分隔符）
+        content = None
+        for col_idx in range(1, len(row)):
+            val = row[col_idx]
+            if val and not self._is_logic_separator(val):
+                content = val
+                break
+
+        if content:
+            self.output.append('   - ' + content)
+
+    def _process_level3_group(self, a, c_logic, d_logic, first_content, row, all_rows, index):
+        """处理三级条件分组: C列和D列都是逻辑分隔符"""
+        # 收集D列逻辑下的所有内容
+        level3_groups = []
+        current_group_items = [first_content] if first_content else []
+        current_d_logic = d_logic
+
+        j = index + 1
+        while j < len(all_rows):
+            next_row = all_rows[j]
+            next_a = next_row[0]
+
+            # 检查是否是同级子项（有编号的）
+            if self._is_sub_item(next_a) and next_a.startswith(a.split('.')[0] + '.'):
+                next_c = next_row[2] if len(next_row) > 2 else ''
+                next_d = next_row[3] if len(next_row) > 3 else ''
+                next_e = next_row[4] if len(next_row) > 4 else ''
+
+                # 如果C列有逻辑，说明是新的二级分组，结束当前处理
+                if self._is_logic_separator(next_c):
                     break
 
-            if len(group_items) > 1:
-                result = group_items[0]
-                # 根据C列的逻辑使用对应的分隔符
-                separator = ' 且 ' if continuation_logic == '与' else ' 或 '
-                for item in group_items[1:]:
-                    result = result + separator + item
-                self.output.append('   - ' + result)
+                # 如果D列有逻辑，说明是新的三级分组
+                if self._is_logic_separator(next_d):
+                    # 保存当前分组
+                    if current_group_items:
+                        level3_groups.append((current_d_logic, current_group_items[:]))
+                    current_group_items = []
+                    current_d_logic = next_d
+                    # 从E列获取内容
+                    if next_e and not self._is_logic_separator(next_e):
+                        current_group_items.append(next_e)
+                        self.processed_rows.add(j)
+                # D列有内容但不是逻辑分隔符
+                elif next_d and not self._is_logic_separator(next_d):
+                    # 保存当前分组
+                    if current_group_items:
+                        level3_groups.append((current_d_logic, current_group_items[:]))
+                        current_group_items = []
+                    # 将D列内容作为单独项目
+                    level3_groups.append((None, [next_d]))
+                    self.processed_rows.add(j)
+                # D列为空，从E列获取内容加入当前分组
+                elif next_e and not self._is_logic_separator(next_e):
+                    current_group_items.append(next_e)
+                    self.processed_rows.add(j)
+                j += 1
+
+            # 检查是否是无编号的延续行（A列为空）
+            elif not next_a:
+                next_c = next_row[2] if len(next_row) > 2 else ''
+                next_d = next_row[3] if len(next_row) > 3 else ''
+                next_e = next_row[4] if len(next_row) > 4 else ''
+
+                # 如果C列有逻辑，结束
+                if self._is_logic_separator(next_c):
+                    break
+
+                # 如果D列有逻辑，新的三级分组
+                if self._is_logic_separator(next_d):
+                    if current_group_items:
+                        level3_groups.append((current_d_logic, current_group_items[:]))
+                    current_group_items = []
+                    current_d_logic = next_d
+                    if next_e and not self._is_logic_separator(next_e):
+                        current_group_items.append(next_e)
+                        self.processed_rows.add(j)
+                # D列有内容但不是逻辑分隔符
+                elif next_d and not self._is_logic_separator(next_d):
+                    if current_group_items:
+                        level3_groups.append((current_d_logic, current_group_items[:]))
+                        current_group_items = []
+                    level3_groups.append((None, [next_d]))
+                    self.processed_rows.add(j)
+                # 延续行，从E列获取内容
+                elif next_e and not self._is_logic_separator(next_e):
+                    current_group_items.append(next_e)
+                    self.processed_rows.add(j)
+                j += 1
             else:
-                self.output.append('   - ' + content)
-        else:
-            self.output.append('   - ' + content)
+                break
+
+        # 保存最后一个分组
+        if current_group_items:
+            level3_groups.append((current_d_logic, current_group_items))
+
+        # 构建三级条件结果
+        if level3_groups:
+            result_parts = []
+            for logic, items in level3_groups:
+                if logic is None:
+                    # 单独项目，直接输出
+                    result_parts.append(items[0])
+                else:
+                    output_logic = self._get_logic_output(logic)
+                    separator = ' ' + output_logic + ' '
+                    group_str = separator.join(items)
+                    if len(items) > 1:
+                        result_parts.append('（' + group_str + '）')
+                    else:
+                        result_parts.append(group_str)
+            result = ' 或 '.join(result_parts)
+            self.output.append('   - ' + result)
+
+    def _process_level2_group(self, a, c_logic, first_content, row, all_rows, index):
+        """处理二级分组: C列是逻辑分隔符，D列不是"""
+        group_items = [first_content] if first_content else []
+        continuation_logic = c_logic
+
+        j = index + 1
+        while j < len(all_rows):
+            next_row = all_rows[j]
+            next_a = next_row[0]
+
+            # 检查是否是同级子项（有编号的）
+            if self._is_sub_item(next_a) and next_a.startswith(a.split('.')[0] + '.'):
+                next_c = next_row[2] if len(next_row) > 2 else ''
+                next_d = next_row[3] if len(next_row) > 3 else ''
+
+                # 如果C列有逻辑，说明是新的分组，结束当前处理
+                if self._is_logic_separator(next_c):
+                    break
+
+                # 如果D列有逻辑，说明是新的三级条件，结束当前处理
+                if self._is_logic_separator(next_d):
+                    break
+
+                # 从C列开始找内容
+                next_content = None
+                for col_idx in range(2, len(next_row)):
+                    val = next_row[col_idx]
+                    if val and not self._is_logic_separator(val):
+                        next_content = val
+                        break
+
+                if next_content:
+                    group_items.append(next_content)
+                    self.processed_rows.add(j)
+                j += 1
+
+            # 检查是否是无编号的延续行（A列为空）
+            elif not next_a:
+                next_c = next_row[2] if len(next_row) > 2 else ''
+                next_d = next_row[3] if len(next_row) > 3 else ''
+
+                # 如果C列有逻辑，结束
+                if self._is_logic_separator(next_c):
+                    break
+
+                # 如果D列有逻辑，结束
+                if self._is_logic_separator(next_d):
+                    break
+
+                # 从C列开始找内容
+                next_content = None
+                for col_idx in range(2, len(next_row)):
+                    val = next_row[col_idx]
+                    if val and not self._is_logic_separator(val):
+                        next_content = val
+                        break
+
+                if next_content:
+                    group_items.append(next_content)
+                    self.processed_rows.add(j)
+                j += 1
+            else:
+                break
+
+        # 输出分组结果
+        if len(group_items) > 1:
+            result = group_items[0]
+            output_logic = self._get_logic_output(continuation_logic)
+            separator = ' ' + output_logic + ' '
+            for item in group_items[1:]:
+                result = result + separator + item
+            self.output.append('   - ' + result)
+        elif group_items:
+            self.output.append('   - ' + group_items[0])
 
 
 def convert_sheet(file_path, sheet_index=0):

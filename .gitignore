@@ -9,3 +9,4 @@
 
 # 4. 保留 .gitignore 文件本身
 !.gitignore
+!.README.md

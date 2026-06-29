@@ -409,24 +409,268 @@ class DCSConverter:
         elif group_items:
             self.output.append('   - ' + group_items[0])
 
+    # ==================== New Mode Methods ====================
 
-def convert_sheet(file_path, sheet_index=0):
+    def convert_new(self, file_path, sheet_index=0):
+        wb = openpyxl.load_workbook(file_path)
+        ws = wb.worksheets[sheet_index]
+
+        rows = []
+        for r in range(1, ws.max_row + 1):
+            row = []
+            for c in range(1, min(ws.max_column + 1, 8)):
+                val = ws.cell(r, c).value
+                row.append(str(val).strip() if val else '')
+            rows.append(row)
+
+        self.output = []
+        self.in_content_area = False
+        self.skip_section = False
+        self.current_sub_title_logic = None
+        self.processed_rows = set()
+        self.current_sheet_name = ws.title
+        self.item_counter = 0  # 顺序编号计数器
+
+        for i, row in enumerate(rows):
+            if i in self.processed_rows:
+                continue
+            self._process_new_row(row, rows, i)
+
+        return '\n'.join(self.output)
+
+    def _process_new_row(self, row, all_rows, index):
+        a = row[0] if len(row) > 0 else ''
+        b = row[1] if len(row) > 1 else ''
+
+        if not a and not b:
+            return
+        if self._is_header_row(row):
+            return
+
+        # 二级标题
+        if self._is_chinese_number_title(a):
+            self.output.append('')
+            self.output.append('## ' + a)
+            self.in_content_area = False
+            self.skip_section = False
+            return
+
+        # 段落标题
+        if a in self.SECTION_HEADERS:
+            if a == '试验条件':
+                self.skip_section = True
+            self.in_content_area = False
+            return
+
+        # 进入内容区域
+        if a == '试验内容':
+            self.in_content_area = True
+            self.skip_section = False
+            return
+
+        if self.skip_section:
+            return
+
+        # 三级标题
+        if self._is_sub_title(a):
+            normalized = a.replace('(', '（').replace(')', '）')
+            self.output.append('')
+            self.output.append('### ' + normalized)
+            self.output.append('')
+            self.current_sub_title_logic = self._extract_title_logic(normalized)
+            return
+
+        # 纯数字序号 → 新模式处理
+        if a.isdigit():
+            self._process_new_item(a, row, all_rows, index)
+            return
+
+    def _process_new_item(self, a, row, all_rows, index):
+        b = row[1] if len(row) > 1 else ''
+        c = row[2] if len(row) > 2 else ''
+
+        b_is_logic = self._is_logic_separator(b)
+
+        # B列不是逻辑 → 一级（直接输出）
+        if not b_is_logic:
+            content = b if b else ''
+            self.item_counter += 1
+            self.output.append(str(self.item_counter) + '. ' + content)
+            return
+
+        # B列是逻辑 → 进入二级处理
+        self.item_counter += 1
+        result = self._process_new_level2(self.item_counter, b, row, all_rows, index)
+        self.output.append(str(self.item_counter) + '. ' + result)
+
+    def _process_new_level2(self, item_num, b_logic, row, all_rows, index):
+        c = row[2] if len(row) > 2 else ''
+
+        c_is_logic = self._is_logic_separator(c)
+
+        # 确定二级遍历范围：从当前行开始，向下数B列空行直到下一个B列逻辑
+        end_index = self._find_end_index(all_rows, index, col=1)
+
+        items = []
+        j = index
+        while j <= end_index:
+            if j >= len(all_rows):
+                break
+            next_row = all_rows[j]
+            next_c = next_row[2] if len(next_row) > 2 else ''
+
+            if j == index:
+                # 当前行：C列是逻辑 → 三级处理
+                if c_is_logic:
+                    level3_result = self._process_new_level3(item_num, c, next_row, all_rows, j)
+                    items.append(level3_result)
+                # 当前行：C列是内容
+                elif c:
+                    items.append(c)
+            else:
+                # 后续行：C列是逻辑 → 三级处理
+                if self._is_logic_separator(next_c):
+                    level3_result = self._process_new_level3(item_num, next_c, next_row, all_rows, j)
+                    items.append(level3_result)
+                    self.processed_rows.add(j)
+                # C列是内容
+                elif next_c:
+                    items.append(next_c)
+                    self.processed_rows.add(j)
+
+            j += 1
+
+        # 用B列逻辑连接所有项目
+        output_logic = self._get_logic_output(b_logic)
+        separator = ' ' + output_logic + ' '
+        return separator.join(items)
+
+    def _process_new_level3(self, item_num, c_logic, row, all_rows, index):
+        d = row[3] if len(row) > 3 else ''
+
+        d_is_logic = self._is_logic_separator(d)
+
+        # 确定三级遍历范围：从当前行开始，向下数C列空行直到下一个C列逻辑
+        end_index = self._find_end_index(all_rows, index, col=2)
+
+        items = []
+        j = index
+        while j <= end_index:
+            if j >= len(all_rows):
+                break
+            next_row = all_rows[j]
+            next_d = next_row[3] if len(next_row) > 3 else ''
+
+            if j == index:
+                # 当前行：D列是逻辑 → 四级处理
+                if d_is_logic:
+                    level4_result = self._process_new_level4(item_num, d, next_row, all_rows, j)
+                    items.append(level4_result)
+                # 当前行：D列是内容
+                elif d:
+                    items.append(d)
+            else:
+                # 后续行：D列是逻辑 → 四级处理
+                if self._is_logic_separator(next_d):
+                    level4_result = self._process_new_level4(item_num, next_d, next_row, all_rows, j)
+                    items.append(level4_result)
+                    self.processed_rows.add(j)
+                # D列是内容
+                elif next_d:
+                    items.append(next_d)
+                    self.processed_rows.add(j)
+
+            j += 1
+
+        # 用C列逻辑连接，三层输出用（）包裹
+        output_logic = self._get_logic_output(c_logic)
+        separator = ' ' + output_logic + ' '
+        result = separator.join(items)
+        if len(items) > 1:
+            return '（' + result + '）'
+        return result
+
+    def _process_new_level4(self, item_num, d_logic, row, all_rows, index):
+        e = row[4] if len(row) > 4 else ''
+
+        # 确定四级遍历范围：从当前行开始，向下数D列空行直到下一个D列逻辑
+        end_index = self._find_end_index(all_rows, index, col=3)
+
+        items = []
+        j = index
+        while j <= end_index:
+            if j >= len(all_rows):
+                break
+            next_row = all_rows[j]
+            next_e = next_row[4] if len(next_row) > 4 else ''
+
+            if j == index:
+                # 当前行：E列内容
+                if e and not self._is_logic_separator(e):
+                    items.append(e)
+            else:
+                # 后续行：E列内容
+                if next_e and not self._is_logic_separator(next_e):
+                    items.append(next_e)
+                    self.processed_rows.add(j)
+
+            j += 1
+
+        # 用D列逻辑连接，四层输出用（）包裹
+        output_logic = self._get_logic_output(d_logic)
+        separator = ' ' + output_logic + ' '
+        result = separator.join(items)
+        if len(items) > 1:
+            return '（' + result + '）'
+        return result
+
+    def _find_end_index(self, all_rows, start_index, col):
+        """找到当前层的结束行索引：从start_index开始，向下数col列空行直到遇到下一个逻辑分隔符"""
+        j = start_index + 1
+        while j < len(all_rows):
+            next_row = all_rows[j]
+            val = next_row[col] if len(next_row) > col else ''
+
+            # 遇到逻辑分隔符 → 结束
+            if self._is_logic_separator(val):
+                return j - 1
+
+            # 遇到A列有新序号（不是空行）→ 检查是否是同级
+            next_a = next_row[0] if len(next_row) > 0 else ''
+            if next_a and next_a.isdigit():
+                # 新序号，但B列可能不是逻辑（延续行），继续
+                pass
+
+            j += 1
+
+        return len(all_rows) - 1
+
+
+def convert_sheet(file_path, sheet_index=0, mode='old'):
     converter = DCSConverter()
+    if mode == 'new':
+        return converter.convert_new(file_path, sheet_index)
     return converter.convert(file_path, sheet_index)
 
 
 if __name__ == '__main__':
     import sys
 
-    if len(sys.argv) < 2:
-        print("Usage: python convert.py <excel_file> [sheet_index]")
+    if len(sys.argv) < 3:
+        print("Usage: python convert.py <mode> <excel_file> [sheet_index]")
+        print("  mode: old | new")
         sys.exit(1)
 
-    file_path = sys.argv[1]
-    sheet_index = int(sys.argv[2]) if len(sys.argv) > 2 else 0
+    mode = sys.argv[1]
+    file_path = sys.argv[2]
+    sheet_index = int(sys.argv[3]) if len(sys.argv) > 3 else 0
+
+    if mode not in ('old', 'new'):
+        print(f"Error: Unknown mode '{mode}'. Use 'old' or 'new'.")
+        sys.exit(1)
 
     try:
-        result = convert_sheet(file_path, sheet_index)
+        result = convert_sheet(file_path, sheet_index, mode)
         with open('output.md', 'w', encoding='utf-8') as f:
             f.write(result)
         print("Done! Output written to output.md")

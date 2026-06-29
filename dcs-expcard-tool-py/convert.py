@@ -144,7 +144,7 @@ class DCSConverter:
                 return val
         return None
 
-    def _process_level1(self, a, b, c, row, all_rows, index):
+    def _process_level1(self, a, b, c, row, all_rows, index, use_seq_num=False):
         # 判断是否有子项
         has_children = False
         child_logic = None
@@ -177,7 +177,11 @@ class DCSConverter:
         if b and '或取反' in b:
             logic_str = '（或取反）'
 
-        self.output.append(a + '. ' + content + logic_str)
+        # 使用顺序编号还是原始A列编号
+        if use_seq_num:
+            self.output.append(str(self.item_counter) + '. ' + content + logic_str)
+        else:
+            self.output.append(a + '. ' + content + logic_str)
 
     def _process_level2(self, a, b, c, row, all_rows, index):
         # 子列二级的列含义:
@@ -478,6 +482,7 @@ class DCSConverter:
             self.output.append('### ' + normalized)
             self.output.append('')
             self.current_sub_title_logic = self._extract_title_logic(normalized)
+            self.item_counter = 0  # 每个三级标题重新计数
             return
 
         # 纯数字序号 → 新模式处理
@@ -489,6 +494,31 @@ class DCSConverter:
         b = row[1] if len(row) > 1 else ''
         c = row[2] if len(row) > 2 else ''
 
+        # 检测下一行A列是否是x.y格式
+        if index + 1 < len(all_rows):
+            next_a = all_rows[index + 1][0]
+            if self._is_sub_item(next_a):
+                # 下一行是x.y格式 → old模式处理
+                self.item_counter += 1
+                self._process_level1(a, b, c, row, all_rows, index, use_seq_num=True)
+                # 处理所有x.y子项
+                j = index + 1
+                while j < len(all_rows):
+                    if j in self.processed_rows:
+                        j += 1
+                        continue
+                    next_row = all_rows[j]
+                    next_a_val = next_row[0]
+                    if self._is_sub_item(next_a_val) and next_a_val.startswith(a + '.'):
+                        self._process_level2(next_a_val, next_row[1] if len(next_row) > 1 else '',
+                                            next_row[2] if len(next_row) > 2 else '', next_row, all_rows, j)
+                        self.processed_rows.add(j)
+                        j += 1
+                    else:
+                        break
+                return
+
+        # 下一行不是x.y格式 → new模式执行检测
         b_is_logic = self._is_logic_separator(b)
 
         # B列不是逻辑 → 一级（直接输出）
@@ -634,12 +664,6 @@ class DCSConverter:
             # 遇到逻辑分隔符 → 结束
             if self._is_logic_separator(val):
                 return j - 1
-
-            # 遇到A列有新序号（不是空行）→ 检查是否是同级
-            next_a = next_row[0] if len(next_row) > 0 else ''
-            if next_a and next_a.isdigit():
-                # 新序号，但B列可能不是逻辑（延续行），继续
-                pass
 
             j += 1
 

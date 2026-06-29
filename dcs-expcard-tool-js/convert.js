@@ -114,7 +114,7 @@ class DCSConverter {
   }
 
   _is_sub_title(text) {
-    return /^\d+[\u4e00-\u9fa5]/.test(text);
+    return /^\d+\.[\u4e00-\u9fa5]/.test(text);
   }
 
   _is_sub_item(text) {

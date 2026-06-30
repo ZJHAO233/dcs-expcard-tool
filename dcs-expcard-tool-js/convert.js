@@ -21,7 +21,10 @@ class DCSConverter {
     };
 
     // 特殊分隔符字典: 键为特殊分隔符的值, 值为处理方式描述
-    this.SPECIAL_SEPARATORS = {};
+    this.SPECIAL_SEPARATORS = {
+      或延时: "或",
+      与延时: "与",
+    };
 
     // 所有可能的逻辑分隔符
     this.LOGIC_SEPARATORS = Object.keys(this.LOGIC_OPERATORS);
@@ -258,7 +261,15 @@ class DCSConverter {
     }
   }
 
-  _process_level3_group(a, c_logic, d_logic, first_content, row, all_rows, index) {
+  _process_level3_group(
+    a,
+    c_logic,
+    d_logic,
+    first_content,
+    row,
+    all_rows,
+    index,
+  ) {
     const level3_groups = [];
     let current_group_items = first_content ? [first_content] : [];
     let current_d_logic = d_logic;
@@ -533,7 +544,7 @@ class DCSConverter {
               next_row[2] || "",
               next_row,
               all_rows,
-              j
+              j,
             );
             this.processed_rows.add(j);
             j++;
@@ -558,7 +569,13 @@ class DCSConverter {
 
     // B列是逻辑 → 进入二级处理
     this.item_counter += 1;
-    const result = this._processNewLevel2(this.item_counter, b, row, all_rows, index);
+    const result = this._processNewLevel2(
+      this.item_counter,
+      b,
+      row,
+      all_rows,
+      index,
+    );
     this.output.push(this.item_counter + ". " + result);
   }
 
@@ -586,7 +603,13 @@ class DCSConverter {
       if (j === index) {
         // 当前行：C列是逻辑 → 三级处理
         if (c_is_logic) {
-          const level3Result = this._processNewLevel3(itemNum, c, next_row, all_rows, j);
+          const level3Result = this._processNewLevel3(
+            itemNum,
+            c,
+            next_row,
+            all_rows,
+            j,
+          );
           items.push(level3Result);
         } else if (c) {
           items.push(c);
@@ -594,7 +617,13 @@ class DCSConverter {
       } else {
         // 后续行：C列是逻辑 → 三级处理
         if (this._is_logic_separator(next_c)) {
-          const level3Result = this._processNewLevel3(itemNum, next_c, next_row, all_rows, j);
+          const level3Result = this._processNewLevel3(
+            itemNum,
+            next_c,
+            next_row,
+            all_rows,
+            j,
+          );
           items.push(level3Result);
           this.processed_rows.add(j);
         } else if (next_c) {
@@ -636,7 +665,13 @@ class DCSConverter {
       if (j === index) {
         // 当前行：D列是逻辑 → 四级处理
         if (d_is_logic) {
-          const level4Result = this._processNewLevel4(itemNum, d, next_row, all_rows, j);
+          const level4Result = this._processNewLevel4(
+            itemNum,
+            d,
+            next_row,
+            all_rows,
+            j,
+          );
           items.push(level4Result);
         } else if (d) {
           items.push(d);
@@ -644,7 +679,13 @@ class DCSConverter {
       } else {
         // 后续行：D列是逻辑 → 四级处理
         if (this._is_logic_separator(next_d)) {
-          const level4Result = this._processNewLevel4(itemNum, next_d, next_row, all_rows, j);
+          const level4Result = this._processNewLevel4(
+            itemNum,
+            next_d,
+            next_row,
+            all_rows,
+            j,
+          );
           items.push(level4Result);
           this.processed_rows.add(j);
         } else if (next_d) {

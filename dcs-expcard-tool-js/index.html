@@ -275,6 +275,43 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
         }
 
+        /* 下载按钮红色系 */
+        [data-theme="glass"] .btn-download {
+            background: rgba(239, 68, 68, 0.2) !important;
+            border-color: rgba(239, 68, 68, 0.3) !important;
+        }
+
+        [data-theme="glass"] .btn-download:hover:not(:disabled) {
+            background: rgba(239, 68, 68, 0.35) !important;
+        }
+
+        [data-theme="glass"] .btn-copy {
+            background: rgba(249, 115, 22, 0.2) !important;
+            border-color: rgba(249, 115, 22, 0.3) !important;
+        }
+
+        [data-theme="glass"] .btn-copy:hover:not(:disabled) {
+            background: rgba(249, 115, 22, 0.35) !important;
+        }
+
+        [data-theme="glass"] .btn-word {
+            background: rgba(220, 38, 38, 0.22) !important;
+            border-color: rgba(220, 38, 38, 0.35) !important;
+        }
+
+        [data-theme="glass"] .btn-word:hover:not(:disabled) {
+            background: rgba(220, 38, 38, 0.38) !important;
+        }
+
+        [data-theme="glass"] .word-settings-btn {
+            background: rgba(220, 38, 38, 0.18) !important;
+            border-left-color: rgba(255, 255, 255, 0.15) !important;
+        }
+
+        [data-theme="glass"] .word-settings-btn:hover:not(:disabled) {
+            background: rgba(220, 38, 38, 0.32) !important;
+        }
+
         [data-theme="glass"] .sheet-item {
             background: rgba(255, 255, 255, 0.12) !important;
             color: #ffffff !important;
@@ -1863,10 +1900,10 @@
                 </div>
 
                 <div class="action-section">
-                    <button class="btn btn-secondary" id="copyBtn" disabled>复制 Markdown</button>
-                    <button class="btn btn-secondary" id="downloadBtn" disabled>下载 Markdown</button>
+                    <button class="btn btn-secondary btn-copy" id="copyBtn" disabled>复制 Markdown</button>
+                    <button class="btn btn-secondary btn-download" id="downloadBtn" disabled>下载 Markdown</button>
                     <div class="word-btn-wrapper">
-                        <button class="btn btn-secondary word-main-btn" id="downloadWordBtn" disabled style="opacity:0.5;cursor:not-allowed;">
+                        <button class="btn btn-secondary word-main-btn btn-word" id="downloadWordBtn" disabled style="opacity:0.5;cursor:not-allowed;">
                             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                 <polyline points="7 10 12 15 17 10"></polyline>

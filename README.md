@@ -22,6 +22,14 @@ cd dcs-expcard-tool-nodejs
 npm install
 ```
 
+### 下载 Pandoc
+
+Word 导出功能需要 Pandoc，请从以下地址下载：
+
+1. 访问 https://github.com/jgm/pandoc/releases
+2. 下载 Windows 版本（`.zip` 压缩包）
+3. 解压后将 `pandoc.exe` 复制到项目 `dcs-expcard-tool-nodejs/` 目录下
+
 ### 启动服务
 
 ```bash

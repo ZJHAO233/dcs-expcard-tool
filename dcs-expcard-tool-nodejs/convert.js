@@ -1,0 +1,710 @@
+/**
+ * DCS Converter - Excel试验条件表转Markdown工具
+ */
+
+class DCSConverter {
+  constructor(config = DCS_CONFIG) {
+    this.config = config;
+
+    // 从配置中读取
+    this.LOGIC_OPERATORS = config.LOGIC_OPERATORS;
+    this.SPECIAL_SEPARATORS = config.SPECIAL_SEPARATORS;
+    this.LOGIC_SEPARATORS = Object.keys(this.LOGIC_OPERATORS);
+    this.SKIP_HEADERS = config.SKIP_HEADERS;
+    this.SECTION_HEADERS = config.SECTION_HEADERS;
+
+    this.output = [];
+    this.inContentArea = false;
+    this.skipSection = false;
+    this.currentSubTitleLogic = null;
+    this.processedRows = new Set();
+    this.special_separator_positions = new Set();
+    this.itemCounter = 0;
+  }
+
+  convert(rows) {
+    this.output = [];
+    this.inContentArea = false;
+    this.skipSection = false;
+    this.currentSubTitleLogic = null;
+    this.processedRows = new Set();
+    this.special_separator_positions = new Set();
+    this.itemCounter = 0;
+
+    for (let i = 0; i < rows.length; i++) {
+      if (this.processedRows.has(i)) continue;
+      this._processRow(rows[i], rows, i);
+    }
+
+    return this.output.join("\n");
+  }
+
+  _isSpecialSeparator(text, rowIndex = null, colIndex = null) {
+    if (text in this.SPECIAL_SEPARATORS) {
+      if (rowIndex !== null && colIndex !== null) {
+        this.special_separator_positions.add([rowIndex, colIndex]);
+      }
+      return true;
+    }
+    return false;
+  }
+
+  _processRow(row, allRows, index) {
+    const seqNum = row[0] || "";
+    const logicCol = row[1] || "";
+    const contentCol = row[2] || "";
+
+    if (!seqNum && !logicCol) return;
+    if (this._isHeaderRow(row)) return;
+
+    if (this._isChineseNumberTitle(seqNum)) {
+      this.output.push("");
+      this.output.push("## " + seqNum);
+      this.inContentArea = false;
+      this.skipSection = false;
+      return;
+    }
+
+    if (this.SECTION_HEADERS.includes(seqNum)) {
+      if (seqNum === "试验条件") {
+        this.skipSection = true;
+      }
+      this.inContentArea = false;
+      return;
+    }
+
+    if (seqNum === "试验内容") {
+      this.inContentArea = true;
+      this.skipSection = false;
+      return;
+    }
+
+    if (this.skipSection) return;
+
+    if (this._isSubTitle(seqNum)) {
+      const normalized = seqNum.replace(/\(/g, "（").replace(/\)/g, "）");
+      this.output.push("");
+      this.output.push("### " + normalized);
+      this.output.push("");
+      this.currentSubTitleLogic = this._extractTitleLogic(normalized);
+      return;
+    }
+
+    if (/^\d+$/.test(seqNum) && !seqNum.includes(".")) {
+      this._processLevel1(seqNum, logicCol, contentCol, row, allRows, index);
+      return;
+    }
+
+    if (this._isSubItem(seqNum)) {
+      this._processLevel2(seqNum, logicCol, contentCol, row, allRows, index);
+      return;
+    }
+  }
+
+  _isHeaderRow(row) {
+    const seqNum = row[0] || "";
+    const logicCol = row[1] || "";
+    if (this.SKIP_HEADERS.includes(seqNum)) return true;
+    if (seqNum === "序号" && (logicCol.includes("条件") || logicCol.includes("内容"))) return true;
+    return false;
+  }
+
+  _isChineseNumberTitle(text) {
+    return /^[一二三四五六七八九十]+、/.test(text);
+  }
+
+  _isSubTitle(text) {
+    return /^\d+\.[\u4e00-\u9fa5]/.test(text);
+  }
+
+  _isSubItem(text) {
+    return /^\d+\.\d+$/.test(text);
+  }
+
+  _extractTitleLogic(title) {
+    const match = title.match(/[（(]([与或])[）)]/);
+    return match ? match[1] : null;
+  }
+
+  _isLogicSeparator(text) {
+    return this.LOGIC_SEPARATORS.includes(text);
+  }
+
+  _getLogicOutput(logic) {
+    return this.LOGIC_OPERATORS[logic] || logic;
+  }
+
+  _getContentFromRow(row, startCol) {
+    for (let i = startCol; i < row.length; i++) {
+      const val = row[i];
+      if (val && !this._isLogicSeparator(val)) {
+        return val;
+      }
+    }
+    return null;
+  }
+
+  _processLevel1(seqNum, logicCol, contentCol, row, allRows, index, useSeqNum = false) {
+    if (logicCol) {
+      this._isSpecialSeparator(logicCol, index, 1);
+    }
+
+    let hasChildren = false;
+    let childLogic = null;
+
+    if (index + 1 < allRows.length) {
+      const nextSeqNum = allRows[index + 1][0] || "";
+      if (this._isSubItem(nextSeqNum) && nextSeqNum.startsWith(seqNum + ".")) {
+        hasChildren = true;
+        const nextLogicCol = allRows[index + 1][1] || "";
+        childLogic = this._isLogicSeparator(nextLogicCol) ? nextLogicCol : null;
+      }
+    }
+
+    let content = this._getContentFromRow(row, 1);
+    if (!content) {
+      content = logicCol && !this._isLogicSeparator(logicCol) ? logicCol : "";
+    }
+
+    let logicStr = "";
+    if (hasChildren && childLogic) {
+      if (this._isLogicSeparator(logicCol)) {
+        if (logicCol !== this.currentSubTitleLogic) {
+          logicStr = "（" + logicCol + "）";
+        }
+      } else {
+        logicStr = "（" + childLogic + "）";
+      }
+    }
+
+    if (logicCol && logicCol.includes("或取反")) {
+      logicStr = "（或取反）";
+    }
+
+    if (useSeqNum) {
+      this.output.push(this.itemCounter + ". " + content + logicStr);
+    } else {
+      this.output.push(seqNum + ". " + content + logicStr);
+    }
+  }
+
+  _processLevel2(seqNum, logicCol, contentCol, row, allRows, index) {
+    const logicVal = logicCol || "";
+    const contentVal = contentCol || "";
+    const colD = row[3] || "";
+    const colE = row[4] || "";
+
+    if (logicVal) this._isSpecialSeparator(logicVal, index, 1);
+    if (contentVal) this._isSpecialSeparator(contentVal, index, 2);
+    if (colD) this._isSpecialSeparator(colD, index, 3);
+    if (colE) this._isSpecialSeparator(colE, index, 4);
+
+    const logicIsLogic = this._isLogicSeparator(logicVal);
+    const contentIsLogic = this._isLogicSeparator(contentVal);
+    const colDIsLogic = this._isLogicSeparator(colD);
+
+    if (contentIsLogic && colDIsLogic) {
+      this._processLevel3Group(seqNum, contentVal, colD, colE, row, allRows, index);
+      return;
+    }
+
+    if (contentIsLogic && !colDIsLogic) {
+      this._processLevel2Group(seqNum, contentVal, colD, row, allRows, index);
+      return;
+    }
+
+    if (logicIsLogic) {
+      if (contentVal && !contentIsLogic) {
+        this.output.push("   - " + contentVal);
+        return;
+      }
+      return;
+    }
+
+    let content = null;
+    for (let colIdx = 1; colIdx < row.length; colIdx++) {
+      const val = row[colIdx];
+      if (val && !this._isLogicSeparator(val)) {
+        content = val;
+        break;
+      }
+    }
+
+    if (content) {
+      this.output.push("   - " + content);
+    }
+  }
+
+  _processLevel3Group(seqNum, cLogic, dLogic, firstContent, row, allRows, index) {
+    const level3Groups = [];
+    let currentGroupItems = firstContent ? [firstContent] : [];
+    let currentDLogic = dLogic;
+
+    let j = index + 1;
+    while (j < allRows.length) {
+      const nextRow = allRows[j];
+      const nextSeqNum = nextRow[0] || "";
+
+      if (
+        this._isSubItem(nextSeqNum) &&
+        nextSeqNum.startsWith(seqNum.split(".")[0] + ".")
+      ) {
+        const nextC = nextRow[2] || "";
+        const nextD = nextRow[3] || "";
+        const nextE = nextRow[4] || "";
+
+        if (this._isLogicSeparator(nextC)) break;
+
+        if (this._isLogicSeparator(nextD)) {
+          if (currentGroupItems.length > 0) {
+            level3Groups.push([currentDLogic, [...currentGroupItems]]);
+          }
+          currentGroupItems = [];
+          currentDLogic = nextD;
+          if (nextE && !this._isLogicSeparator(nextE)) {
+            currentGroupItems.push(nextE);
+            this.processedRows.add(j);
+          }
+        } else if (nextD && !this._isLogicSeparator(nextD)) {
+          if (currentGroupItems.length > 0) {
+            level3Groups.push([currentDLogic, [...currentGroupItems]]);
+            currentGroupItems = [];
+          }
+          level3Groups.push([null, [nextD]]);
+          this.processedRows.add(j);
+        } else if (nextE && !this._isLogicSeparator(nextE)) {
+          currentGroupItems.push(nextE);
+          this.processedRows.add(j);
+        }
+        j++;
+      } else if (!nextSeqNum) {
+        const nextC = nextRow[2] || "";
+        const nextD = nextRow[3] || "";
+        const nextE = nextRow[4] || "";
+
+        if (this._isLogicSeparator(nextC)) break;
+
+        if (this._isLogicSeparator(nextD)) {
+          if (currentGroupItems.length > 0) {
+            level3Groups.push([currentDLogic, [...currentGroupItems]]);
+          }
+          currentGroupItems = [];
+          currentDLogic = nextD;
+          if (nextE && !this._isLogicSeparator(nextE)) {
+            currentGroupItems.push(nextE);
+            this.processedRows.add(j);
+          }
+        } else if (nextD && !this._isLogicSeparator(nextD)) {
+          if (currentGroupItems.length > 0) {
+            level3Groups.push([currentDLogic, [...currentGroupItems]]);
+            currentGroupItems = [];
+          }
+          level3Groups.push([null, [nextD]]);
+          this.processedRows.add(j);
+        } else if (nextE && !this._isLogicSeparator(nextE)) {
+          currentGroupItems.push(nextE);
+          this.processedRows.add(j);
+        }
+        j++;
+      } else {
+        break;
+      }
+    }
+
+    if (currentGroupItems.length > 0) {
+      level3Groups.push([currentDLogic, currentGroupItems]);
+    }
+
+    if (level3Groups.length > 0) {
+      const resultParts = [];
+      for (const [logic, items] of level3Groups) {
+        if (logic === null) {
+          resultParts.push(items[0]);
+        } else {
+          const outputLogic = this._getLogicOutput(logic);
+          const separator = " " + outputLogic + " ";
+          const groupStr = items.join(separator);
+          if (items.length > 1) {
+            resultParts.push("（" + groupStr + "）");
+          } else {
+            resultParts.push(groupStr);
+          }
+        }
+      }
+      const result = resultParts.join(" 或 ");
+      this.output.push("   - " + result);
+    }
+  }
+
+  _processLevel2Group(seqNum, cLogic, firstContent, row, allRows, index) {
+    const groupItems = firstContent ? [firstContent] : [];
+    const continuationLogic = cLogic;
+
+    let j = index + 1;
+    while (j < allRows.length) {
+      const nextRow = allRows[j];
+      const nextSeqNum = nextRow[0] || "";
+
+      if (
+        this._isSubItem(nextSeqNum) &&
+        nextSeqNum.startsWith(seqNum.split(".")[0] + ".")
+      ) {
+        const nextC = nextRow[2] || "";
+        const nextD = nextRow[3] || "";
+
+        if (this._isLogicSeparator(nextC)) break;
+        if (this._isLogicSeparator(nextD)) break;
+
+        let nextContent = null;
+        for (let colIdx = 2; colIdx < nextRow.length; colIdx++) {
+          const val = nextRow[colIdx];
+          if (val && !this._isLogicSeparator(val)) {
+            nextContent = val;
+            break;
+          }
+        }
+
+        if (nextContent) {
+          groupItems.push(nextContent);
+          this.processedRows.add(j);
+        }
+        j++;
+      } else if (!nextSeqNum) {
+        const nextC = nextRow[2] || "";
+        const nextD = nextRow[3] || "";
+
+        if (this._isLogicSeparator(nextC)) break;
+        if (this._isLogicSeparator(nextD)) break;
+
+        let nextContent = null;
+        for (let colIdx = 2; colIdx < nextRow.length; colIdx++) {
+          const val = nextRow[colIdx];
+          if (val && !this._isLogicSeparator(val)) {
+            nextContent = val;
+            break;
+          }
+        }
+
+        if (nextContent) {
+          groupItems.push(nextContent);
+          this.processedRows.add(j);
+        }
+        j++;
+      } else {
+        break;
+      }
+    }
+
+    if (groupItems.length > 1) {
+      let result = groupItems[0];
+      const outputLogic = this._getLogicOutput(continuationLogic);
+      const separator = " " + outputLogic + " ";
+      for (let i = 1; i < groupItems.length; i++) {
+        result = result + separator + groupItems[i];
+      }
+      this.output.push("   - " + result);
+    } else if (groupItems.length > 0) {
+      this.output.push("   - " + groupItems[0]);
+    }
+  }
+
+  // ==================== New Mode Methods ====================
+
+  convertNew(rows) {
+    this.output = [];
+    this.inContentArea = false;
+    this.skipSection = false;
+    this.currentSubTitleLogic = null;
+    this.processedRows = new Set();
+    this.special_separator_positions = new Set();
+    this.itemCounter = 0;
+
+    for (let i = 0; i < rows.length; i++) {
+      if (this.processedRows.has(i)) continue;
+      this._processNewRow(rows[i], rows, i);
+    }
+
+    return this.output.join("\n");
+  }
+
+  _processNewRow(row, allRows, index) {
+    const seqNum = row[0] || "";
+    const logicCol = row[1] || "";
+
+    if (!seqNum && !logicCol) return;
+    if (this._isHeaderRow(row)) return;
+
+    if (this._isChineseNumberTitle(seqNum)) {
+      this.output.push("");
+      this.output.push("## " + seqNum);
+      this.inContentArea = false;
+      this.skipSection = false;
+      return;
+    }
+
+    if (this.SECTION_HEADERS.includes(seqNum)) {
+      if (seqNum === "试验条件") {
+        this.skipSection = true;
+      }
+      this.inContentArea = false;
+      return;
+    }
+
+    if (seqNum === "试验内容") {
+      this.inContentArea = true;
+      this.skipSection = false;
+      return;
+    }
+
+    if (this.skipSection) return;
+
+    if (this._isSubTitle(seqNum)) {
+      const normalized = seqNum.replace(/\(/g, "（").replace(/\)/g, "）");
+      this.output.push("");
+      this.output.push("### " + normalized);
+      this.output.push("");
+      this.currentSubTitleLogic = this._extractTitleLogic(normalized);
+      this.itemCounter = 0;
+      return;
+    }
+
+    if (/^\d+$/.test(seqNum)) {
+      this._processNewItem(seqNum, row, allRows, index);
+      return;
+    }
+  }
+
+  _processNewItem(seqNum, row, allRows, index) {
+    const logicCol = row[1] || "";
+    const contentCol = row[2] || "";
+
+    if (logicCol) this._isSpecialSeparator(logicCol, index, 1);
+    if (contentCol) this._isSpecialSeparator(contentCol, index, 2);
+
+    if (index + 1 < allRows.length) {
+      const nextSeqNum = allRows[index + 1][0] || "";
+      if (this._isSubItem(nextSeqNum)) {
+        this.itemCounter += 1;
+        this._processLevel1(seqNum, logicCol, contentCol, row, allRows, index, true);
+        let j = index + 1;
+        while (j < allRows.length) {
+          if (this.processedRows.has(j)) {
+            j++;
+            continue;
+          }
+          const nextRow = allRows[j];
+          const nextSeqNumVal = nextRow[0] || "";
+          if (this._isSubItem(nextSeqNumVal) && nextSeqNumVal.startsWith(seqNum + ".")) {
+            this._processLevel2(
+              nextSeqNumVal,
+              nextRow[1] || "",
+              nextRow[2] || "",
+              nextRow,
+              allRows,
+              j,
+            );
+            this.processedRows.add(j);
+            j++;
+          } else {
+            break;
+          }
+        }
+        return;
+      }
+    }
+
+    const logicIsLogic = this._isLogicSeparator(logicCol);
+
+    if (!logicIsLogic) {
+      const content = logicCol || "";
+      this.itemCounter += 1;
+      this.output.push(this.itemCounter + ". " + content);
+      return;
+    }
+
+    this.itemCounter += 1;
+    const result = this._processNewLevel2(
+      this.itemCounter,
+      logicCol,
+      row,
+      allRows,
+      index,
+    );
+    this.output.push(this.itemCounter + ". " + result);
+  }
+
+  _processNewLevel2(itemNum, bLogic, row, allRows, index) {
+    const contentCol = row[2] || "";
+
+    if (contentCol) this._isSpecialSeparator(contentCol, index, 2);
+
+    const contentIsLogic = this._isLogicSeparator(contentCol);
+
+    const endIndex = this._findEndIndex(allRows, index, 1);
+
+    const items = [];
+    let j = index;
+    while (j <= endIndex) {
+      if (j >= allRows.length) break;
+      const nextRow = allRows[j];
+      const nextContent = nextRow[2] || "";
+
+      if (nextContent) this._isSpecialSeparator(nextContent, j, 2);
+
+      if (j === index) {
+        if (contentIsLogic) {
+          const level3Result = this._processNewLevel3(
+            itemNum,
+            contentCol,
+            nextRow,
+            allRows,
+            j,
+          );
+          items.push(level3Result);
+        } else if (contentCol) {
+          items.push(contentCol);
+        }
+      } else {
+        if (this._isLogicSeparator(nextContent)) {
+          const level3Result = this._processNewLevel3(
+            itemNum,
+            nextContent,
+            nextRow,
+            allRows,
+            j,
+          );
+          items.push(level3Result);
+          this.processedRows.add(j);
+        } else if (nextContent) {
+          items.push(nextContent);
+          this.processedRows.add(j);
+        }
+      }
+
+      j++;
+    }
+
+    const outputLogic = this._getLogicOutput(bLogic);
+    const separator = " " + outputLogic + " ";
+    return items.join(separator);
+  }
+
+  _processNewLevel3(itemNum, cLogic, row, allRows, index) {
+    const colD = row[3] || "";
+
+    if (colD) this._isSpecialSeparator(colD, index, 3);
+
+    const colDIsLogic = this._isLogicSeparator(colD);
+
+    const endIndex = this._findEndIndex(allRows, index, 2);
+
+    const items = [];
+    let j = index;
+    while (j <= endIndex) {
+      if (j >= allRows.length) break;
+      const nextRow = allRows[j];
+      const nextD = nextRow[3] || "";
+
+      if (nextD) this._isSpecialSeparator(nextD, j, 3);
+
+      if (j === index) {
+        if (colDIsLogic) {
+          const level4Result = this._processNewLevel4(
+            itemNum,
+            colD,
+            nextRow,
+            allRows,
+            j,
+          );
+          items.push(level4Result);
+        } else if (colD) {
+          items.push(colD);
+        }
+      } else {
+        if (this._isLogicSeparator(nextD)) {
+          const level4Result = this._processNewLevel4(
+            itemNum,
+            nextD,
+            nextRow,
+            allRows,
+            j,
+          );
+          items.push(level4Result);
+          this.processedRows.add(j);
+        } else if (nextD) {
+          items.push(nextD);
+          this.processedRows.add(j);
+        }
+      }
+
+      j++;
+    }
+
+    const outputLogic = this._getLogicOutput(cLogic);
+    const separator = " " + outputLogic + " ";
+    const result = items.join(separator);
+    if (items.length > 1) {
+      return "（" + result + "）";
+    }
+    return result;
+  }
+
+  _processNewLevel4(itemNum, dLogic, row, allRows, index) {
+    const colE = row[4] || "";
+
+    if (colE) this._isSpecialSeparator(colE, index, 4);
+
+    const endIndex = this._findEndIndex(allRows, index, 3);
+
+    const items = [];
+    let j = index;
+    while (j <= endIndex) {
+      if (j >= allRows.length) break;
+      const nextRow = allRows[j];
+      const nextE = nextRow[4] || "";
+
+      if (nextE) this._isSpecialSeparator(nextE, j, 4);
+
+      if (j === index) {
+        if (colE && !this._isLogicSeparator(colE)) {
+          items.push(colE);
+        }
+      } else {
+        if (nextE && !this._isLogicSeparator(nextE)) {
+          items.push(nextE);
+          this.processedRows.add(j);
+        }
+      }
+
+      j++;
+    }
+
+    const outputLogic = this._getLogicOutput(dLogic);
+    const separator = " " + outputLogic + " ";
+    const result = items.join(separator);
+    if (items.length > 1) {
+      return "（" + result + "）";
+    }
+    return result;
+  }
+
+  _findEndIndex(allRows, startIndex, col) {
+    let j = startIndex + 1;
+    while (j < allRows.length) {
+      const nextRow = allRows[j];
+      const val = nextRow[col] || "";
+
+      if (this._isLogicSeparator(val)) {
+        return j - 1;
+      }
+
+      j++;
+    }
+
+    return allRows.length - 1;
+  }
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = DCSConverter;
+}

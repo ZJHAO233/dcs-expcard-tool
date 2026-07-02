@@ -1,5 +1,5 @@
 /**
- * DCS Converter - Excel试验条件表转Markdown工具
+ * ExpCard Converter - Excel试验条件表转Markdown工具
  */
 
 class DCSConverter {
@@ -19,6 +19,7 @@ class DCSConverter {
     this.currentSubTitleLogic = null;
     this.processedRows = new Set();
     this.special_separator_positions = new Set();
+    this._recordedPositions = new Set();
     this.itemCounter = 0;
   }
 
@@ -29,6 +30,7 @@ class DCSConverter {
     this.currentSubTitleLogic = null;
     this.processedRows = new Set();
     this.special_separator_positions = new Set();
+    this._recordedPositions = new Set();
     this.itemCounter = 0;
 
     for (let i = 0; i < rows.length; i++) {
@@ -138,7 +140,25 @@ class DCSConverter {
   }
 
   _isLogicSeparator(text) {
-    return this.LOGIC_SEPARATORS.includes(text) || this._isSpecialSeparator(text);
+    return this.LOGIC_SEPARATORS.includes(text) || text in this.SPECIAL_SEPARATORS;
+  }
+
+  _recordSpecialSeparators(row, rowIndex) {
+    for (let col = 1; col <= Math.min(row.length - 1, 4); col++) {
+      const val = row[col] || "";
+      if (val) {
+        for (const [key, value] of Object.entries(this.SPECIAL_SEPARATORS)) {
+          if (val.startsWith(key)) {
+            const posKey = `${rowIndex},${col}`;
+            if (!this._recordedPositions.has(posKey)) {
+              this._recordedPositions.add(posKey);
+              this.special_separator_positions.add([rowIndex, col]);
+            }
+            break;
+          }
+        }
+      }
+    }
   }
 
   _getLogicOutput(logic) {
@@ -161,9 +181,7 @@ class DCSConverter {
   }
 
   _processLevel1(seqNum, logicCol, contentCol, row, allRows, index, useSeqNum = false) {
-    if (logicCol) {
-      this._isSpecialSeparator(logicCol, index, 1);
-    }
+    this._recordSpecialSeparators(row, index);
 
     let hasChildren = false;
     let childLogic = null;
@@ -208,15 +226,12 @@ class DCSConverter {
   }
 
   _processLevel2(seqNum, logicCol, contentCol, row, allRows, index) {
+    this._recordSpecialSeparators(row, index);
+
     const logicVal = logicCol || "";
     const contentVal = contentCol || "";
     const colD = row[3] || "";
     const colE = row[4] || "";
-
-    if (logicVal) this._isSpecialSeparator(logicVal, index, 1);
-    if (contentVal) this._isSpecialSeparator(contentVal, index, 2);
-    if (colD) this._isSpecialSeparator(colD, index, 3);
-    if (colE) this._isSpecialSeparator(colE, index, 4);
 
     const logicIsLogic = this._isLogicSeparator(logicVal);
     const contentIsLogic = this._isLogicSeparator(contentVal);
@@ -255,6 +270,8 @@ class DCSConverter {
   }
 
   _processLevel3Group(seqNum, cLogic, dLogic, firstContent, row, allRows, index) {
+    this._recordSpecialSeparators(row, index);
+
     const level3Groups = [];
     let currentGroupItems = firstContent ? [firstContent] : [];
     let currentDLogic = dLogic;
@@ -268,6 +285,8 @@ class DCSConverter {
         this._isSubItem(nextSeqNum) &&
         nextSeqNum.startsWith(seqNum.split(".")[0] + ".")
       ) {
+        this._recordSpecialSeparators(nextRow, j);
+
         const nextC = nextRow[2] || "";
         const nextD = nextRow[3] || "";
         const nextE = nextRow[4] || "";
@@ -297,6 +316,8 @@ class DCSConverter {
         }
         j++;
       } else if (!nextSeqNum) {
+        this._recordSpecialSeparators(nextRow, j);
+
         const nextC = nextRow[2] || "";
         const nextD = nextRow[3] || "";
         const nextE = nextRow[4] || "";
@@ -356,6 +377,8 @@ class DCSConverter {
   }
 
   _processLevel2Group(seqNum, cLogic, firstContent, row, allRows, index) {
+    this._recordSpecialSeparators(row, index);
+
     const groupItems = firstContent ? [firstContent] : [];
     const continuationLogic = cLogic;
 
@@ -368,6 +391,8 @@ class DCSConverter {
         this._isSubItem(nextSeqNum) &&
         nextSeqNum.startsWith(seqNum.split(".")[0] + ".")
       ) {
+        this._recordSpecialSeparators(nextRow, j);
+
         const nextC = nextRow[2] || "";
         const nextD = nextRow[3] || "";
 
@@ -389,6 +414,8 @@ class DCSConverter {
         }
         j++;
       } else if (!nextSeqNum) {
+        this._recordSpecialSeparators(nextRow, j);
+
         const nextC = nextRow[2] || "";
         const nextD = nextRow[3] || "";
 
@@ -436,6 +463,7 @@ class DCSConverter {
     this.currentSubTitleLogic = null;
     this.processedRows = new Set();
     this.special_separator_positions = new Set();
+    this._recordedPositions = new Set();
     this.itemCounter = 0;
 
     for (let i = 0; i < rows.length; i++) {
@@ -494,11 +522,10 @@ class DCSConverter {
   }
 
   _processNewItem(seqNum, row, allRows, index) {
+    this._recordSpecialSeparators(row, index);
+
     const logicCol = row[1] || "";
     const contentCol = row[2] || "";
-
-    if (logicCol) this._isSpecialSeparator(logicCol, index, 1);
-    if (contentCol) this._isSpecialSeparator(contentCol, index, 2);
 
     if (index + 1 < allRows.length) {
       const nextSeqNum = allRows[index + 1][0] || "";
@@ -553,10 +580,9 @@ class DCSConverter {
   }
 
   _processNewLevel2(itemNum, bLogic, row, allRows, index) {
+    this._recordSpecialSeparators(row, index);
+
     const contentCol = row[2] || "";
-
-    if (contentCol) this._isSpecialSeparator(contentCol, index, 2);
-
     const contentIsLogic = this._isLogicSeparator(contentCol);
 
     const endIndex = this._findEndIndex(allRows, index, 1);
@@ -566,9 +592,12 @@ class DCSConverter {
     while (j <= endIndex) {
       if (j >= allRows.length) break;
       const nextRow = allRows[j];
-      const nextContent = nextRow[2] || "";
 
-      if (nextContent) this._isSpecialSeparator(nextContent, j, 2);
+      if (j !== index) {
+        this._recordSpecialSeparators(nextRow, j);
+      }
+
+      const nextContent = nextRow[2] || "";
 
       if (j === index) {
         if (contentIsLogic) {
@@ -609,10 +638,9 @@ class DCSConverter {
   }
 
   _processNewLevel3(itemNum, cLogic, row, allRows, index) {
+    this._recordSpecialSeparators(row, index);
+
     const colD = row[3] || "";
-
-    if (colD) this._isSpecialSeparator(colD, index, 3);
-
     const colDIsLogic = this._isLogicSeparator(colD);
 
     const endIndex = this._findEndIndex(allRows, index, 2);
@@ -622,9 +650,12 @@ class DCSConverter {
     while (j <= endIndex) {
       if (j >= allRows.length) break;
       const nextRow = allRows[j];
-      const nextD = nextRow[3] || "";
 
-      if (nextD) this._isSpecialSeparator(nextD, j, 3);
+      if (j !== index) {
+        this._recordSpecialSeparators(nextRow, j);
+      }
+
+      const nextD = nextRow[3] || "";
 
       if (j === index) {
         if (colDIsLogic) {
@@ -669,10 +700,9 @@ class DCSConverter {
   }
 
   _processNewLevel4(itemNum, dLogic, row, allRows, index) {
+    this._recordSpecialSeparators(row, index);
+
     const colE = row[4] || "";
-
-    if (colE) this._isSpecialSeparator(colE, index, 4);
-
     const endIndex = this._findEndIndex(allRows, index, 3);
 
     const items = [];
@@ -680,9 +710,12 @@ class DCSConverter {
     while (j <= endIndex) {
       if (j >= allRows.length) break;
       const nextRow = allRows[j];
-      const nextE = nextRow[4] || "";
 
-      if (nextE) this._isSpecialSeparator(nextE, j, 4);
+      if (j !== index) {
+        this._recordSpecialSeparators(nextRow, j);
+      }
+
+      const nextE = nextRow[4] || "";
 
       if (j === index) {
         if (colE && !this._isLogicSeparator(colE)) {
@@ -712,6 +745,8 @@ class DCSConverter {
     while (j < allRows.length) {
       const nextRow = allRows[j];
       const val = nextRow[col] || "";
+
+      this._recordSpecialSeparators(nextRow, j);
 
       if (this._isLogicSeparator(val)) {
         return j - 1;

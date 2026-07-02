@@ -1,5 +1,5 @@
 """
-DCS Converter - Excel试验条件表转Markdown工具
+ExpCard Converter - Excel试验条件表转Markdown工具
 """
 
 import re

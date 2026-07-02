@@ -1,5 +1,5 @@
 /**
- * DCS Converter - Excel试验条件表转Markdown工具 (JS版本)
+ * ExpCard Converter - Excel试验条件表转Markdown工具 (JS版本)
  */
 
 class DCSConverter {

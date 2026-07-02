@@ -1,5 +1,5 @@
 /**
- * DCS Converter - 配置文件
+ * ExpCard Converter - 配置文件
  * 逻辑分隔符与特殊分隔符字典（可外部修改）
  */
 
@@ -15,7 +15,7 @@ const DCS_CONFIG = {
   // 特殊分隔符字典
   SPECIAL_SEPARATORS: {
     或延时: "或",
-    与延时: "与",
+    与延时: "且",
   },
 
   // 跳过的表头

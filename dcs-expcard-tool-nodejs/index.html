@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1024 1024'%3E%3Cpath fill='%236366f1' d='M819.2 187.733333H477.866667a17.066667 17.066667 0 0 0 0 34.133334h341.333333a17.066667 17.066667 0 0 0 0-34.133334zM819.2 324.266667H477.866667a17.066667 17.066667 0 0 0 0 34.133333h341.333333a17.066667 17.066667 0 0 0 0-34.133333zM819.2 460.8h-204.8a17.066667 17.066667 0 0 0 0 34.133333h204.8a17.066667 17.066667 0 0 0 0-34.133333zM819.2 597.333333h-136.533333a17.066667 17.066667 0 0 0 0 34.133334h136.533333a17.066667 17.066667 0 0 0 0-34.133334z'/%3E%3Cpath fill='%236366f1' d='M863.9488 34.133333H467.2512A126.020267 126.020267 0 0 0 341.333333 160.0512V204.8H160.0512A126.020267 126.020267 0 0 0 34.133333 330.717867v533.230933A126.020267 126.020267 0 0 0 160.0512 989.866667h396.6976A126.020267 126.020267 0 0 0 682.666667 863.9488V819.2h181.282133A126.020267 126.020267 0 0 0 989.866667 693.282133V160.0512A126.020267 126.020267 0 0 0 863.9488 34.133333z m85.265067 659.114667a85.367467 85.367467 0 0 1-85.265067 85.265067H467.2512a85.333333 85.333333 0 0 1-85.230933-85.265067v-8.977067c-13.858133 7.304533-26.965333 15.940267-39.150934 25.873067A125.781333 125.781333 0 0 0 467.2512 819.2h174.762667v44.714667a85.367467 85.367467 0 0 1-85.265067 85.265066H160.0512a85.333333 85.333333 0 0 1-85.230933-85.265066V330.683733a85.333333 85.333333 0 0 1 85.230933-85.230933v0.034133H341.333333v133.3248c13.277867-5.3248 26.862933-9.966933 40.686934-13.892266V160.017067a85.333333 85.333333 0 0 1 85.230933-85.230934v0.034134h396.6976a85.333333 85.333333 0 0 1 85.265067 85.230933V693.248z'/%3E%3Cpath fill='%236366f1' d='M562.926933 514.116267c0.682667-1.058133 1.604267-1.911467 2.048-3.072a20.718933 20.718933 0 0 0 1.604267-7.9872c0-0.3072-0.170667-0.546133-0.170667-0.853334 0-0.2048 0.136533-0.4096 0.1024-0.6144-0.034133-0.580267-0.443733-0.989867-0.546133-1.570133a19.899733 19.899733 0 0 0-10.103467-14.6432l-0.136533-0.1024-0.2048-0.1024c-0.7168-0.375467-1.3312-0.8192-2.082133-1.092267l-126.3616-66.935466a20.48 20.48 0 1 0-19.1488 36.215466l55.227733 29.252267h-5.700267a342.869333 342.869333 0 0 0-295.048533 169.506133 20.48 20.48 0 1 0 35.396267 20.650667 301.806933 301.806933 0 0 1 259.6864-149.230933h29.320533l-68.061867 52.872533a20.445867 20.445867 0 1 0 25.156267 32.324267l114.858667-89.224534c0.512-0.375467 0.682667-1.024 1.160533-1.467733 1.160533-1.1264 2.082133-2.525867 3.003733-3.925333z'/%3E%3C/svg%3E">
-    <title>DCS Converter</title>
+    <title>ExpCard Converter</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.0/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
@@ -69,45 +69,52 @@
         }
 
         [data-theme="glass"] {
-            --bg: linear-gradient(135deg, #363648 0%, #424258 50%, #52526a 100%);
-            --bg-color: #363648;
-            --surface: rgba(255, 255, 255, 0.18);
-            --border: rgba(255, 255, 255, 0.22);
-            --text-primary: #ffffff;
-            --text-secondary: rgba(255, 255, 255, 0.88);
-            --text-muted: rgba(255, 255, 255, 0.55);
-            --primary: #ffffff;
-            --primary-hover: rgba(255, 255, 255, 0.92);
-            --primary-light: rgba(255, 255, 255, 0.15);
-            --success: #ffffff;
-            --success-light: rgba(255, 255, 255, 0.15);
-            --success-dark: #ffffff;
-            --warning: #e5e7eb;
-            --warning-light: rgba(229, 231, 235, 0.22);
-            --warning-dark: #f3f4f6;
-            --shadow: 0 8px 32px rgba(0, 0, 0, 0.14);
-            --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.09);
+            --bg: linear-gradient(135deg, #3a3a42 0%, #353540 50%, #303038 100%);
+            --bg-color: #353540;
+            --surface: rgba(255, 255, 255, 0.08);
+            --border: rgba(255, 255, 255, 0.12);
+            --text-primary: #f0f0f2;
+            --text-secondary: #c0c0c8;
+            --text-muted: #787880;
+            --primary: #8888f0;
+            --primary-hover: #a0a0f8;
+            --primary-light: rgba(136, 136, 240, 0.15);
+            --success: #50c878;
+            --success-light: rgba(80, 200, 120, 0.12);
+            --success-dark: #78e8a0;
+            --warning: #e8a848;
+            --warning-light: rgba(232, 168, 72, 0.12);
+            --warning-dark: #f0c878;
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+            --shadow-sm: 0 4px 16px rgba(0, 0, 0, 0.25);
             --radius: 16px;
             --radius-sm: 12px;
-            --md-text: rgba(255, 255, 255, 0.94);
-            --md-primary: #ffffff;
-            --md-marker: rgba(255, 255, 255, 0.5);
-            --md-block-bg: rgba(255, 255, 255, 0.12);
-            --status-success-body: #ffffff;
-            --status-warning-body: #f3f4f6;
-            /* 中饱和度彩色系 */
-            --glass-topbar: rgba(168, 142, 200, 0.32);
-            --glass-upload: rgba(120, 160, 210, 0.3);
-            --glass-sheet: rgba(100, 180, 140, 0.28);
-            --glass-range: rgba(210, 170, 110, 0.28);
-            --glass-action: rgba(200, 120, 120, 0.26);
-            --glass-outline: rgba(100, 150, 200, 0.28);
-            --glass-md: rgba(120, 160, 200, 0.22);
+            --md-text: #d0d0d8;
+            --md-primary: #9898e8;
+            --md-marker: #6868a0;
+            --md-block-bg: rgba(136, 136, 240, 0.06);
+            --status-success-body: #78e8a0;
+            --status-warning-body: #f0c878;
+            /* 灰色系色卡 - 各元素颜色差异明显 */
+            --glass-topbar: rgba(80, 80, 90, 0.5);
+            --glass-upload: rgba(70, 90, 120, 0.45);
+            --glass-sheet: rgba(90, 70, 110, 0.4);
+            --glass-range: rgba(100, 80, 90, 0.4);
+            --glass-action: rgba(110, 70, 80, 0.4);
+            --glass-outline: rgba(75, 85, 105, 0.42);
+            --glass-md: rgba(65, 80, 115, 0.38);
+            /* 按钮色系 - 灰色系不同色调，差异明显 */
+            --btn-download: rgba(180, 60, 80, 0.35);
+            --btn-download-hover: rgba(180, 60, 80, 0.55);
+            --btn-copy: rgba(60, 120, 180, 0.35);
+            --btn-copy-hover: rgba(60, 120, 180, 0.55);
+            --btn-word: rgba(100, 60, 160, 0.38);
+            --btn-word-hover: rgba(100, 60, 160, 0.58);
         }
 
         /* 毛玻璃主题特殊样式 */
         [data-theme="glass"] body {
-            background: linear-gradient(135deg, #363648 0%, #424258 50%, #52526a 100%);
+            background: linear-gradient(135deg, #3a3a42 0%, #353540 50%, #303038 100%);
             background-attachment: fixed;
             position: relative;
             overflow: hidden;
@@ -116,15 +123,11 @@
         [data-theme="glass"] body::before {
             content: '';
             position: fixed;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: 
-                radial-gradient(circle at 20% 30%, rgba(168, 162, 158, 0.15) 0%, transparent 40%),
-                radial-gradient(circle at 80% 70%, rgba(133, 146, 169, 0.12) 0%, transparent 40%),
-                radial-gradient(circle at 50% 50%, rgba(120, 146, 134, 0.08) 0%, transparent 50%);
-            animation: glowMove 15s ease-in-out infinite;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at 50% 50%, rgba(200, 200, 220, 0.04) 0%, transparent 60%);
             pointer-events: none;
             z-index: 0;
         }
@@ -132,50 +135,17 @@
         [data-theme="glass"] body::after {
             content: '';
             position: fixed;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: 
-                radial-gradient(circle at 70% 20%, rgba(162, 132, 132, 0.1) 0%, transparent 35%),
-                radial-gradient(circle at 30% 80%, rgba(166, 150, 122, 0.1) 0%, transparent 35%);
-            animation: glowMove2 18s ease-in-out infinite reverse;
+            top: var(--glow-y, 50%);
+            left: var(--glow-x, 50%);
+            width: 600px;
+            height: 600px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(200, 200, 220, 0.1) 0%, rgba(200, 200, 220, 0.02) 35%, transparent 65%);
             pointer-events: none;
             z-index: 0;
-        }
-
-        @keyframes glowMove {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            25% { transform: translate(2%, -2%) rotate(1deg); }
-            50% { transform: translate(-1%, 2%) rotate(-1deg); }
-            75% { transform: translate(-2%, -1%) rotate(0.5deg); }
-        }
-
-        @keyframes glowMove2 {
-            0%, 100% { transform: translate(0, 0) rotate(0deg); }
-            25% { transform: translate(-2%, 1%) rotate(-1deg); }
-            50% { transform: translate(1%, -1%) rotate(1deg); }
-            75% { transform: translate(2%, 2%) rotate(-0.5deg); }
-        }
-
-        [data-theme="glass"] .app-container {
-            position: relative;
-            z-index: 1;
-        }
-
-        [data-theme="glass"] body::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
-            background-repeat: repeat;
-            background-size: 256px 256px;
-            pointer-events: none;
-            z-index: 0;
-            opacity: 0.6;
+            transform: translate(-50%, -50%);
+            transition: opacity 0.5s ease;
+            opacity: var(--glow-opacity, 0);
         }
 
         [data-theme="glass"] .app-container {
@@ -187,214 +157,234 @@
             background: var(--glass-topbar) !important;
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            border: 1px solid rgba(80, 80, 90, 0.6) !important;
+            border-radius: var(--radius) !important;
         }
 
         [data-theme="glass"] .upload-section {
             background: var(--glass-upload) !important;
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.25) !important;
+            border: 1px solid rgba(70, 90, 120, 0.5) !important;
+            border-radius: var(--radius) !important;
         }
 
         [data-theme="glass"] .sheet-section {
             background: var(--glass-sheet) !important;
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.25) !important;
+            border: 1px solid rgba(90, 70, 110, 0.5) !important;
+            border-radius: var(--radius) !important;
         }
 
         [data-theme="glass"] .range-section {
             background: var(--glass-range) !important;
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.25) !important;
+            border: 1px solid rgba(100, 80, 90, 0.5) !important;
+            border-radius: var(--radius) !important;
         }
 
         [data-theme="glass"] .action-section {
             background: var(--glass-action) !important;
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.25) !important;
+            border: 1px solid rgba(110, 70, 80, 0.5) !important;
+            border-radius: var(--radius) !important;
         }
 
         [data-theme="glass"] .top-bar {
             background: var(--glass-topbar) !important;
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.25) !important;
+            border: 1px solid rgba(80, 80, 90, 0.55) !important;
+            border-radius: var(--radius) !important;
         }
 
         [data-theme="glass"] .bottom-bar {
-            background: rgba(255, 255, 255, 0.12) !important;
+            background: rgba(100, 100, 110, 0.35) !important;
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border: 1px solid rgba(100, 100, 110, 0.4) !important;
+            border-radius: var(--radius) !important;
         }
 
         [data-theme="glass"] .md-render {
             background: var(--glass-md) !important;
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border: 1px solid rgba(65, 80, 115, 0.42) !important;
+            border-radius: var(--radius) !important;
         }
 
         [data-theme="glass"] .outline-inline {
             background: var(--glass-outline) !important;
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.25) !important;
+            border: 1px solid rgba(75, 85, 105, 0.48) !important;
+            border-radius: var(--radius) !important;
         }
 
         [data-theme="glass"] .status-card {
-            background: rgba(255, 255, 255, 0.15) !important;
+            background: rgba(90, 90, 100, 0.35) !important;
             backdrop-filter: blur(12px);
             -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border: 1px solid rgba(90, 90, 100, 0.4) !important;
+            border-radius: var(--radius-sm) !important;
         }
 
         [data-theme="glass"] .btn-primary {
-            background: rgba(99, 102, 241, 0.8) !important;
+            background: rgba(136, 136, 240, 0.75) !important;
             color: #ffffff !important;
-            box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3) !important;
+            box-shadow: 0 4px 15px rgba(136, 136, 240, 0.3) !important;
+            border-radius: var(--radius-sm) !important;
         }
 
         [data-theme="glass"] .btn-primary:hover:not(:disabled) {
-            background: rgba(99, 102, 241, 0.9) !important;
-            box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4) !important;
+            background: rgba(136, 136, 240, 0.9) !important;
+            box-shadow: 0 6px 20px rgba(136, 136, 240, 0.4) !important;
         }
 
         [data-theme="glass"] .btn-secondary {
-            background: rgba(255, 255, 255, 0.12) !important;
-            color: #ffffff !important;
-            border: 1px solid rgba(255, 255, 255, 0.25) !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+            color: #f0f0f2 !important;
+            border: 1px solid rgba(255, 255, 255, 0.18) !important;
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
+            border-radius: var(--radius-sm) !important;
         }
 
         [data-theme="glass"] .btn-secondary:hover:not(:disabled) {
-            background: rgba(255, 255, 255, 0.22) !important;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
+            background: rgba(255, 255, 255, 0.18) !important;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
         }
 
-        /* 下载按钮红色系 */
         [data-theme="glass"] .btn-download {
-            background: rgba(239, 68, 68, 0.2) !important;
-            border-color: rgba(239, 68, 68, 0.3) !important;
+            background: var(--btn-download) !important;
+            border-color: rgba(180, 60, 80, 0.45) !important;
+            border-radius: var(--radius-sm) !important;
         }
 
         [data-theme="glass"] .btn-download:hover:not(:disabled) {
-            background: rgba(239, 68, 68, 0.35) !important;
+            background: var(--btn-download-hover) !important;
         }
 
         [data-theme="glass"] .btn-copy {
-            background: rgba(249, 115, 22, 0.2) !important;
-            border-color: rgba(249, 115, 22, 0.3) !important;
+            background: var(--btn-copy) !important;
+            border-color: rgba(60, 120, 180, 0.45) !important;
+            border-radius: var(--radius-sm) !important;
         }
 
         [data-theme="glass"] .btn-copy:hover:not(:disabled) {
-            background: rgba(249, 115, 22, 0.35) !important;
+            background: var(--btn-copy-hover) !important;
         }
 
         [data-theme="glass"] .btn-word {
-            background: rgba(220, 38, 38, 0.22) !important;
-            border-color: rgba(220, 38, 38, 0.35) !important;
+            background: var(--btn-word) !important;
+            border-color: rgba(100, 60, 160, 0.48) !important;
+            border-radius: var(--radius-sm) !important;
         }
 
         [data-theme="glass"] .btn-word:hover:not(:disabled) {
-            background: rgba(220, 38, 38, 0.38) !important;
+            background: var(--btn-word-hover) !important;
         }
 
         [data-theme="glass"] .word-settings-btn {
-            background: rgba(220, 38, 38, 0.18) !important;
-            border-left-color: rgba(255, 255, 255, 0.15) !important;
+            background: rgba(100, 60, 160, 0.25) !important;
+            border-left-color: rgba(100, 60, 160, 0.32) !important;
+            border-radius: 0 var(--radius-sm) var(--radius-sm) 0 !important;
         }
 
         [data-theme="glass"] .word-settings-btn:hover:not(:disabled) {
-            background: rgba(220, 38, 38, 0.32) !important;
+            background: rgba(100, 60, 160, 0.42) !important;
         }
 
         [data-theme="glass"] .sheet-item {
-            background: rgba(255, 255, 255, 0.12) !important;
-            color: #ffffff !important;
-            border: 1px solid rgba(255, 255, 255, 0.18) !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+            color: #f0f0f2 !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
             transition: all 0.25s ease !important;
+            border-radius: 8px !important;
         }
 
         [data-theme="glass"] .sheet-item:hover {
-            background: rgba(255, 255, 255, 0.22) !important;
-            border-color: rgba(255, 255, 255, 0.38) !important;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15) !important;
+            background: rgba(255, 255, 255, 0.15) !important;
+            border-color: rgba(255, 255, 255, 0.2) !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
         }
 
         [data-theme="glass"] .sheet-item.active {
-            background: rgba(255, 255, 255, 0.38) !important;
-            border-color: rgba(255, 255, 255, 0.55) !important;
-            box-shadow: 0 2px 12px rgba(255, 255, 255, 0.18), inset 0 0 20px rgba(255, 255, 255, 0.1) !important;
+            background: rgba(136, 136, 240, 0.25) !important;
+            border-color: rgba(136, 136, 240, 0.4) !important;
+            box-shadow: 0 2px 12px rgba(136, 136, 240, 0.15), inset 0 0 20px rgba(136, 136, 240, 0.08) !important;
             font-weight: 600 !important;
             animation: sheetBounce 0.35s ease !important;
         }
 
         [data-theme="glass"] .status-card.success .status-card-icon {
-            background: rgba(34, 197, 94, 0.8) !important;
+            background: rgba(80, 200, 120, 0.7) !important;
             color: #ffffff !important;
         }
 
         [data-theme="glass"] .status-card.warning .status-card-icon {
-            background: rgba(245, 158, 11, 0.8) !important;
+            background: rgba(232, 168, 72, 0.7) !important;
             color: #ffffff !important;
         }
 
         [data-theme="glass"] .upload-area {
-            background: rgba(255, 255, 255, 0.1) !important;
-            border: 2px dashed rgba(255, 255, 255, 0.4) !important;
+            background: rgba(70, 90, 120, 0.25) !important;
+            border: 2px dashed rgba(70, 90, 120, 0.4) !important;
+            border-radius: var(--radius) !important;
         }
 
         [data-theme="glass"] .upload-area:hover {
-            background: rgba(255, 255, 255, 0.2) !important;
-            border-color: rgba(255, 255, 255, 0.6) !important;
+            background: rgba(70, 90, 120, 0.35) !important;
+            border-color: rgba(70, 90, 120, 0.6) !important;
         }
 
         [data-theme="glass"] .range-toggle {
-            background: rgba(255, 255, 255, 0.1) !important;
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            background: rgba(100, 80, 90, 0.3) !important;
+            border: 1px solid rgba(100, 80, 90, 0.4) !important;
+            border-radius: 8px !important;
         }
 
         [data-theme="glass"] .range-btn {
-            color: rgba(255, 255, 255, 0.7) !important;
+            color: #787880 !important;
         }
 
         [data-theme="glass"] .range-btn.active {
-            background: rgba(255, 255, 255, 0.3) !important;
-            color: #ffffff !important;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+            background: rgba(255, 255, 255, 0.15) !important;
+            color: #8888f0 !important;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2) !important;
         }
 
         [data-theme="glass"] .filename-input {
-            background: rgba(255, 255, 255, 0.15) !important;
-            color: #ffffff !important;
-            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+            color: #f0f0f2 !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            border-radius: 8px !important;
         }
 
         [data-theme="glass"] .filename-input::placeholder {
-            color: rgba(255, 255, 255, 0.5) !important;
+            color: #787880 !important;
         }
 
         [data-theme="glass"] .theme-toggle,
         [data-theme="glass"] .outline-action-btn {
-            background: rgba(255, 255, 255, 0.15) !important;
-            color: #ffffff !important;
-            border: 1px solid rgba(255, 255, 255, 0.3) !important;
+            background: rgba(255, 255, 255, 0.1) !important;
+            color: #c0c0c8 !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            border-radius: 6px !important;
         }
 
         [data-theme="glass"] .theme-toggle:hover,
         [data-theme="glass"] .outline-action-btn:hover {
-            background: rgba(255, 255, 255, 0.25) !important;
+            background: rgba(255, 255, 255, 0.18) !important;
         }
 
         [data-theme="glass"] .outline-title,
         [data-theme="glass"] .section-label {
-            color: rgba(255, 255, 255, 0.7) !important;
+            color: #787880 !important;
         }
 
         [data-theme="glass"] .md-render h1 {
@@ -402,20 +392,21 @@
         }
 
         [data-theme="glass"] .md-render h2 {
-            background: rgba(139, 92, 246, 0.35) !important;
+            background: rgba(136, 136, 240, 0.2) !important;
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
-            border: 1px solid rgba(139, 92, 246, 0.3) !important;
+            border: 1px solid rgba(136, 136, 240, 0.3) !important;
             color: #ffffff !important;
+            border-radius: 8px !important;
         }
 
         [data-theme="glass"] .md-render h3 {
-            color: #c4b5fd !important;
+            color: #b8b8f8 !important;
         }
 
         [data-theme="glass"] .md-render p,
         [data-theme="glass"] .md-render li {
-            color: rgba(255, 255, 255, 0.9) !important;
+            color: #d0d0d8 !important;
         }
 
         [data-theme="glass"] .md-render strong {
@@ -423,44 +414,47 @@
         }
 
         [data-theme="glass"] .outline-node {
-            color: rgba(255, 255, 255, 0.8) !important;
+            color: #c0c0c8 !important;
         }
 
         [data-theme="glass"] .outline-node:hover,
         [data-theme="glass"] .outline-node.active {
-            background: rgba(255, 255, 255, 0.15) !important;
+            background: rgba(255, 255, 255, 0.1) !important;
             color: #ffffff !important;
+            border-radius: 6px !important;
         }
 
         [data-theme="glass"] .outline-toggle {
-            background: rgba(255, 255, 255, 0.1) !important;
-            color: rgba(255, 255, 255, 0.6) !important;
+            background: rgba(255, 255, 255, 0.08) !important;
+            color: #787880 !important;
+            border-radius: 4px !important;
         }
 
         [data-theme="glass"] .outline-children {
-            border-left-color: rgba(255, 255, 255, 0.2) !important;
+            border-left-color: rgba(255, 255, 255, 0.12) !important;
         }
 
         [data-theme="glass"] .file-name,
         [data-theme="glass"] .file-name-empty {
-            color: #ffffff !important;
+            color: #f0f0f2 !important;
         }
 
         [data-theme="glass"] .filename-label,
         [data-theme="glass"] .filename-ext {
-            color: rgba(255, 255, 255, 0.6) !important;
+            color: #787880 !important;
         }
 
         [data-theme="glass"] .status-tag,
         [data-theme="glass"] .status-location-tag {
-            background: rgba(255, 255, 255, 0.2) !important;
-            color: #ffffff !important;
+            background: rgba(255, 255, 255, 0.12) !important;
+            color: #f0f0f2 !important;
+            border-radius: 4px !important;
         }
 
         [data-theme="glass"] .outline-empty,
         [data-theme="glass"] .status-empty,
         [data-theme="glass"] .md-render-empty {
-            color: rgba(255, 255, 255, 0.5) !important;
+            color: #787880 !important;
         }
 
         [data-theme="neumorphism"] .sidebar-logo,
@@ -1564,6 +1558,61 @@
             width: 100%;
         }
 
+        .status-expand-btn {
+            cursor: pointer;
+            background: var(--primary-light) !important;
+            color: var(--primary) !important;
+            font-weight: 500;
+            transition: all 0.2s ease;
+        }
+
+        .status-expand-btn:hover {
+            background: var(--primary) !important;
+            color: white !important;
+        }
+
+        .location-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .location-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            background: var(--bg);
+            border-radius: 6px;
+            border: 1px solid var(--border);
+        }
+
+        .location-sheet {
+            font-weight: 600;
+            color: var(--text-primary);
+            min-width: 120px;
+        }
+
+        .location-pos {
+            color: var(--text-secondary);
+            font-family: 'SF Mono', 'Fira Code', monospace;
+            font-size: 12px;
+        }
+
+        [data-theme="glass"] .location-item {
+            background: rgba(255, 255, 255, 0.08) !important;
+            border: 1px solid rgba(255, 255, 255, 0.12) !important;
+            border-radius: 8px !important;
+        }
+
+        [data-theme="glass"] .location-sheet {
+            color: #f0f0f2 !important;
+        }
+
+        [data-theme="glass"] .location-pos {
+            color: #c0c0c8 !important;
+        }
+
         /* 主题切换 */
         .theme-toggle {
             padding: 6px 12px;
@@ -1628,6 +1677,12 @@
             animation: modalFadeIn 0.2s ease;
         }
 
+        [data-theme="glass"] .modal-overlay {
+            background: rgba(0, 0, 0, 0.25);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+
         @keyframes modalFadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
@@ -1645,9 +1700,37 @@
         }
 
         [data-theme="glass"] .modal-content {
-            background: rgba(255, 255, 255, 0.2);
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            background: rgba(50, 50, 58, 0.88) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+            border-radius: var(--radius) !important;
+        }
+
+        @keyframes modalFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: var(--surface);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 420px;
+            max-height: 90vh;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            animation: modalSlideIn 0.25s ease;
+        }
+
+        [data-theme="glass"] .modal-content {
+            background: rgba(50, 50, 58, 0.88) !important;
+            backdrop-filter: blur(20px) !important;
+            -webkit-backdrop-filter: blur(20px) !important;
+            border: 1px solid rgba(255, 255, 255, 0.15) !important;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3) !important;
+            border-radius: var(--radius) !important;
         }
 
         @keyframes modalSlideIn {
@@ -1688,6 +1771,24 @@
         .modal-close:hover {
             background: var(--bg);
             color: var(--text-primary);
+        }
+
+        [data-theme="glass"] .modal-close:hover {
+            background: rgba(255, 255, 255, 0.12) !important;
+            color: #ffffff !important;
+        }
+
+        [data-theme="glass"] .modal-header {
+            border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+        }
+
+        [data-theme="glass"] .modal-header h3 {
+            color: #ffffff !important;
+        }
+
+        [data-theme="glass"] .modal-close {
+            color: #787880 !important;
+            border-radius: 8px !important;
         }
 
         .modal-body {
@@ -2135,7 +2236,7 @@
                     <path fill="currentColor" d="M863.9488 34.133333H467.2512A126.020267 126.020267 0 0 0 341.333333 160.0512V204.8H160.0512A126.020267 126.020267 0 0 0 34.133333 330.717867v533.230933A126.020267 126.020267 0 0 0 160.0512 989.866667h396.6976A126.020267 126.020267 0 0 0 682.666667 863.9488V819.2h181.282133A126.020267 126.020267 0 0 0 989.866667 693.282133V160.0512A126.020267 126.020267 0 0 0 863.9488 34.133333z m85.265067 659.114667a85.367467 85.367467 0 0 1-85.265067 85.265067H467.2512a85.333333 85.333333 0 0 1-85.230933-85.265067v-8.977067c-13.858133 7.304533-26.965333 15.940267-39.150934 25.873067A125.781333 125.781333 0 0 0 467.2512 819.2h174.762667v44.714667a85.367467 85.367467 0 0 1-85.265067 85.265066H160.0512a85.333333 85.333333 0 0 1-85.230933-85.265066V330.683733a85.333333 85.333333 0 0 1 85.230933-85.230933v0.034133H341.333333v133.3248c13.277867-5.3248 26.862933-9.966933 40.686934-13.892266V160.017067a85.333333 85.333333 0 0 1 85.230933-85.230934v0.034134h396.6976a85.333333 85.333333 0 0 1 85.265067 85.230933V693.248z"/>
                     <path fill="currentColor" d="M562.926933 514.116267c0.682667-1.058133 1.604267-1.911467 2.048-3.072a20.718933 20.718933 0 0 0 1.604267-7.9872c0-0.3072-0.170667-0.546133-0.170667-0.853334 0-0.2048 0.136533-0.4096 0.1024-0.6144-0.034133-0.580267-0.443733-0.989867-0.546133-1.570133a19.899733 19.899733 0 0 0-10.103467-14.6432l-0.136533-0.1024-0.2048-0.1024c-0.7168-0.375467-1.3312-0.8192-2.082133-1.092267l-126.3616-66.935466a20.48 20.48 0 1 0-19.1488 36.215466l55.227733 29.252267h-5.700267a342.869333 342.869333 0 0 0-295.048533 169.506133 20.48 20.48 0 1 0 35.396267 20.650667 301.806933 301.806933 0 0 1 259.6864-149.230933h29.320533l-68.061867 52.872533a20.445867 20.445867 0 1 0 25.156267 32.324267l114.858667-89.224534c0.512-0.375467 0.682667-1.024 1.160533-1.467733 1.160533-1.1264 2.082133-2.525867 3.003733-3.925333z"/>
                 </svg>
-                DCS Converter
+                ExpCard Converter
             </div>
 
             <div class="control-panel">
@@ -2227,6 +2328,20 @@
         </div>
     </div>
 
+    <script>
+        document.addEventListener('mousemove', (e) => {
+            const glow = document.body;
+            glow.style.setProperty('--glow-x', e.clientX + 'px');
+            glow.style.setProperty('--glow-y', e.clientY + 'px');
+            const afterEl = glow.querySelector(':scope') || glow;
+            const after = document.body;
+            after.style.setProperty('--glow-opacity', '1');
+        });
+
+        document.addEventListener('mouseleave', () => {
+            document.body.style.setProperty('--glow-opacity', '0');
+        });
+    </script>
     <script src="config.js"></script>
     <script src="convert.js"></script>
     <script>
@@ -2235,6 +2350,7 @@
         let originalFileName = '';
         let exportRange = 'single';
         let markdownContent = '';
+        let allSpecialLocations = [];
 
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
@@ -2569,17 +2685,24 @@
             }
 
             statusCards.innerHTML = cards.map(c => {
-                const locationsHtml = c.locations && c.locations.length > 0
-                    ? `<div class="status-card-locations">
-                         <div class="status-locations-label">涉及位置：</div>
-                         <div class="status-location-tags">
-                           ${c.locations.slice(0, 5).map(loc => 
-                             `<span class="status-location-tag" title="文件: ${loc.file}">${loc.display}</span>`
-                           ).join('')}
-                           ${c.locations.length > 5 ? `<span class="status-location-tag">+${c.locations.length - 5}</span>` : ''}
-                         </div>
-                       </div>`
-                    : '';
+                let locationsHtml = '';
+                if (c.locations && c.locations.length > 0) {
+                    const previewHtml = c.locations.slice(0, 5).map(loc => 
+                        `<span class="status-location-tag" title="文件: ${loc.file}">${loc.display}</span>`
+                    ).join('');
+                    
+                    const extraCount = c.locations.length - 5;
+                    const expandBtn = extraCount > 0 
+                        ? `<span class="status-location-tag status-expand-btn" onclick="showAllLocations()">+${extraCount} 更多</span>`
+                        : '';
+
+                    locationsHtml = `
+                        <div class="status-card-locations">
+                            <div class="status-locations-label">涉及位置：</div>
+                            <div class="status-location-tags">${previewHtml}${expandBtn}</div>
+                        </div>
+                    `;
+                }
 
                 return `
                     <div class="status-card ${c.type}">
@@ -2592,6 +2715,33 @@
                     </div>
                 `;
             }).join('');
+        }
+
+        function showAllLocations() {
+            const modal = document.createElement('div');
+            modal.className = 'modal-overlay';
+            modal.innerHTML = `
+                <div class="modal-content" style="width: 500px; max-height: 70vh;">
+                    <div class="modal-header">
+                        <h3>特殊分隔符位置（共 ${allSpecialLocations.length} 处）</h3>
+                        <button class="modal-close" onclick="this.closest('.modal-overlay').remove()">×</button>
+                    </div>
+                    <div class="modal-body" style="max-height: 50vh; overflow-y: auto;">
+                        <div class="location-list">
+                            ${allSpecialLocations.map(loc => `
+                                <div class="location-item">
+                                    <span class="location-sheet">${loc.sheet}</span>
+                                    <span class="location-pos">行${loc.row} ${loc.col}列</span>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.body.appendChild(modal);
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) modal.remove();
+            });
         }
 
         function processRawData(rawData) {
@@ -2610,7 +2760,7 @@
 
             const converters = [];
             const allOutput = [];
-            const allSpecialLocations = [];
+            allSpecialLocations = [];
             let totalRows = 0;
 
             const fileName = originalFileName || '未知文件';

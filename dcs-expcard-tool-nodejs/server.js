@@ -48,7 +48,7 @@ app.post('/api/convert-to-word', (req, res) => {
     // 清理临时 docx 文件
     try { fs.unlinkSync(tempDocx); } catch (e) {}
 
-    const outputName = (filename || 'DCS试验卡').replace(/\.[^.]+$/, '') + '.docx';
+    const outputName = (filename || '试验卡').replace(/\.[^.]+$/, '') + '.docx';
 
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
     res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent(outputName)}`);

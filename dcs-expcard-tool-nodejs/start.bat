@@ -1,30 +1,36 @@
 @echo off
 title ExpCard Converter
 color 0B
+mode con: cols=58 lines=35
 
+:menu
 cls
 echo.
-echo    ===================================================
-echo    EEEEEEEE XXXXXXXX PPPPPPPP  CCCCCCCC  AAA  RRRRRR  DDDDDDD
-echo    EEE       XXX       PP    PP CC        AAAA  RR   RR DD    DD
-echo    EEE       XXX       PP    PP CC       AA  AA RR  RR  DD    DD
-echo    EEEEEEEE  XXXXXXXX  PPPPPPPP CC      AAAAAAAA RRRRRR  DD    DD
-echo    EEE       XXX       PP       CC      AA    AA RR  RR  DD    DD
-echo    EEE       XXX       PP       CC      AA    AA RR   RR DD    DD
-echo    EEEEEEEE  XXXXXXXX  PP        CCCCCCCC AA    AA RR    RR DDDDDDD
-echo    ===================================================
-echo                      [ Excel to Markdown ]
+echo    +----------------------------------------------------+
+echo    ^|                                                    ^|
+echo    ^|      _____ _____ _____ ____  __  __ ____  _     __ ^|
+echo    ^|     ^|  ___^|  _  ^|  _  ^|  _ ^|  \/  ^|  _ ^| ^|   / _ ^|^|
+echo    ^|     ^| ^|_  ^| ^|_\\| ^|_^| ^| ^|_) ^| ^|\/^| ^| ^|_) ^| ^|  ^| ^| ^|^|
+echo    ^|     ^|  _^| ^|  _ ^|  _ ^|  _ ^|^| ^|  ^| ^|  __/^| ^|__^| ^|_^|^|
+echo    ^|     ^|_^|   ^|_^| ^|_^| ^|_^| ^|\_\^|_^|  ^|_^|_^|    ^|_____\___/^|
+echo    ^|                                                    ^|
+echo    ^|           [ Excel to Markdown Converter ]          ^|
+echo    ^|                                                    ^|
+echo    +----------------------------------------------------+
 echo.
+echo    +----------------------------------------------------+
+echo    ^|                                                    ^|
+echo    ^|    [ 1 ]  Start Server                             ^|
+echo    ^|                                                    ^|
+echo    ^|    [ 2 ]  Edit Config                              ^|
+echo    ^|                                                    ^|
+echo    ^|    [ 3 ]  Help                                     ^|
+echo    ^|                                                    ^|
+echo    ^|    [ 0 ]  Exit                                     ^|
+echo    ^|                                                    ^|
+echo    +----------------------------------------------------+
 echo.
-echo    [1] Start Server
-echo    [2] Edit Config
-echo    [3] Help
-echo    [0] Exit
-echo.
-echo    ---------------------------------------------------
-echo.
-
-set /p choice="    Select: "
+set /p choice="    Select [0-3]: "
 
 if "%choice%"=="1" goto start
 if "%choice%"=="2" goto config
@@ -32,21 +38,23 @@ if "%choice%"=="3" goto help
 if "%choice%"=="0" goto exit
 
 echo.
-echo    [!] Invalid option
+echo    Invalid option!
 timeout /t 2 >nul
 goto menu
 
 :start
 cls
 echo.
-echo    ===================================================
-echo                      Starting Server...
-echo    ===================================================
+echo    +----------------------------------------------------+
+echo    ^|                                                    ^|
+echo    ^|              Starting Server...                    ^|
+echo    ^|                                                    ^|
+echo    +----------------------------------------------------+
 echo.
-echo    Address : http://localhost:3210
-echo    Stop    : Ctrl+C
+echo    Address  : http://localhost:3210
+echo    Stop     : Press Ctrl+C
 echo.
-echo    ---------------------------------------------------
+echo    -----------------------------------------------------
 echo.
 
 if exist "expcard-converter.exe" (
@@ -66,21 +74,23 @@ goto end
 :config
 cls
 echo.
-echo    ===================================================
-echo                       Config File
-echo    ===================================================
+echo    +----------------------------------------------------+
+echo    ^|                                                    ^|
+echo    ^|              Config File                           ^|
+echo    ^|                                                    ^|
+echo    +----------------------------------------------------+
 echo.
-echo    File : config.js
+echo    File     : config.js
 echo.
-echo    Edit:
-echo      - LOGIC_OPERATORS
-echo      - SPECIAL_SEPARATORS
-echo      - SKIP_HEADERS
-echo      - SECTION_HEADERS
+echo    Editable:
+echo      - LOGIC_OPERATORS      (Logic operators)
+echo      - SPECIAL_SEPARATORS   (Special separators)
+echo      - SKIP_HEADERS         (Skip headers)
+echo      - SECTION_HEADERS      (Section headers)
 echo.
 echo    Note: Restart server after edit.
 echo.
-echo    ---------------------------------------------------
+echo    -----------------------------------------------------
 echo.
 if exist "config.js" (
     echo    Opening config.js...
@@ -94,22 +104,29 @@ goto menu
 :help
 cls
 echo.
-echo    ===================================================
-echo                         Help
-echo    ===================================================
+echo    +----------------------------------------------------+
+echo    ^|                                                    ^|
+echo    ^|              Help                                  ^|
+echo    ^|                                                    ^|
+echo    +----------------------------------------------------+
 echo.
-echo    1. Double click to start
-echo    2. Open http://localhost:3210
-echo    3. Upload .xlsx file
-echo    4. Select sheet and range
-echo    5. Click Convert
-echo    6. Preview and export
+echo    Quick Start:
+echo      1. Double click start.bat
+echo      2. Open http://localhost:3210
+echo      3. Upload .xlsx file
+echo      4. Select sheet and range
+echo      5. Click Convert button
+echo      6. Preview and export result
 echo.
-echo    Support:
+echo    Support Modes:
 echo      - Sub-number mode (x.y format)
 echo      - Pure number mode (column nesting)
 echo.
-echo    ---------------------------------------------------
+echo    Special Separators:
+echo      - "or delay" converts to "or"
+echo      - "and delay" converts to "and"
+echo.
+echo    -----------------------------------------------------
 echo.
 pause
 goto menu
@@ -119,3 +136,4 @@ exit /b 0
 
 :end
 pause
+goto menu

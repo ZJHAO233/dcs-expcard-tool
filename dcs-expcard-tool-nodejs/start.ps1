@@ -3,6 +3,9 @@ $Host.UI.RawUI.WindowTitle = "ExpCard Converter"
 $OutputEncoding = [System.Text.Encoding]::UTF8
 [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
 
+# 默认端口
+$script:ServerPort = 3210
+
 function Show-Banner {
     Clear-Host
     Write-Host ""
@@ -15,6 +18,7 @@ function Show-Banner {
     Write-Host "  ========================================================" -ForegroundColor Cyan
     Write-Host "                  试验卡数据提取工具                       " -ForegroundColor Yellow
     Write-Host "  ========================================================" -ForegroundColor Cyan
+    Write-Host "                  端口: $($script:ServerPort)                                " -ForegroundColor DarkGray
 }
 
 function Show-Loading {
@@ -50,11 +54,51 @@ function Show-Menu {
     Write-Host "  使用帮助                                  |" -ForegroundColor White
     Write-Host "  |                                                        |" -ForegroundColor White
     Write-Host "  |    " -ForegroundColor White -NoNewline
+    Write-Host "[ 4 ]" -ForegroundColor Magenta -NoNewline
+    Write-Host "  设置端口                                  |" -ForegroundColor White
+    Write-Host "  |                                                        |" -ForegroundColor White
+    Write-Host "  |    " -ForegroundColor White -NoNewline
     Write-Host "[ 0 ]" -ForegroundColor Red -NoNewline
     Write-Host "  退出程序                                  |" -ForegroundColor White
     Write-Host "  |                                                        |" -ForegroundColor White
     Write-Host "  +--------------------------------------------------------+" -ForegroundColor White
     Write-Host ""
+}
+
+function Set-Port {
+    Clear-Host
+    Write-Host ""
+    Write-Host "  ========================================================" -ForegroundColor Magenta
+    Write-Host "                      设置端口号                            " -ForegroundColor Magenta
+    Write-Host "  ========================================================" -ForegroundColor Magenta
+    Write-Host ""
+    Write-Host "  当前端口  : " -NoNewline
+    Write-Host "$($script:ServerPort)" -ForegroundColor Yellow
+    Write-Host ""
+    Write-Host "  默认端口  : 3210" -ForegroundColor Gray
+    Write-Host "  建议范围  : 1024 - 65535" -ForegroundColor Gray
+    Write-Host ""
+    Write-Host "  ---------------------------------------------------------" -ForegroundColor DarkGray
+    Write-Host ""
+    
+    $newPort = Read-Host "  输入新端口 (回车保持当前)"
+    
+    if ($newPort -eq "") {
+        Write-Host ""
+        Write-Host "  保持当前端口: $($script:ServerPort)" -ForegroundColor Yellow
+    } elseif ($newPort -match "^\d+$" -and [int]$newPort -ge 1024 -and [int]$newPort -le 65535) {
+        $script:ServerPort = [int]$newPort
+        Write-Host ""
+        Write-Host "  端口已修改为: $($script:ServerPort)" -ForegroundColor Green
+    } else {
+        Write-Host ""
+        Write-Host "  [错误] 无效端口号!" -ForegroundColor Red
+        Write-Host "  请输入 1024-65535 之间的数字" -ForegroundColor Yellow
+    }
+    
+    Write-Host ""
+    Pause
+    Show-MenuLoop
 }
 
 function Start-Server {
@@ -111,12 +155,12 @@ function Start-Server {
     }
 
     Write-Host "  [ 4/4 ] " -NoNewline -ForegroundColor DarkGray
-    Write-Host "检测端口 3210..." -NoNewline -ForegroundColor White
-    $portInUse = Get-NetTCPConnection -LocalPort 3210 -ErrorAction SilentlyContinue
+    Write-Host "检测端口 $($script:ServerPort)..." -NoNewline -ForegroundColor White
+    $portInUse = Get-NetTCPConnection -LocalPort $script:ServerPort -ErrorAction SilentlyContinue
     if ($portInUse) {
         Write-Host " 被占用" -ForegroundColor Yellow
         Write-Host ""
-        Write-Host "  [提示] 端口 3210 已被占用，尝试关闭旧进程..." -ForegroundColor Yellow
+        Write-Host "  [提示] 端口 $($script:ServerPort) 已被占用，尝试关闭旧进程..." -ForegroundColor Yellow
         Get-Process -Id $portInUse.OwningProcess -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
         Start-Sleep -Milliseconds 500
         Write-Host "  [提示] 旧进程已关闭" -ForegroundColor Green
@@ -128,43 +172,39 @@ function Start-Server {
     Write-Host "  ---------------------------------------------------------" -ForegroundColor DarkGray
     Write-Host ""
     Write-Host "  访问地址  : " -NoNewline
-    Write-Host "http://localhost:3210" -ForegroundColor Yellow -BackgroundColor DarkGray
+    Write-Host "http://localhost:$($script:ServerPort)" -ForegroundColor Yellow -BackgroundColor DarkGray
     Write-Host "  停止服务  : 按 Ctrl+C"
     Write-Host ""
     Write-Host "  ---------------------------------------------------------" -ForegroundColor DarkGray
 
-    # 加载动画
     Show-Loading -Message "正在启动服务器，请稍候..." -Seconds 3
 
-    # 后台启动服务
+    # 后台启动服务，传递端口参数
     if (Test-Path $exePath) {
+        $env:PORT = $script:ServerPort
         $process = Start-Process -FilePath $exePath -PassThru -WindowStyle Hidden
     } else {
-        $process = Start-Process -FilePath "node" -ArgumentList "server.js" -PassThru -WindowStyle Hidden
+        $process = Start-Process -FilePath "node" -ArgumentList "server.js" -PassThru -WindowStyle Hidden -Environment @{PORT=$script:ServerPort}
     }
 
-    # 等待服务启动
     $maxWait = 10
     $waited = 0
     while ($waited -lt $maxWait) {
         Start-Sleep -Seconds 1
         $waited++
-        $portCheck = Get-NetTCPConnection -LocalPort 3210 -ErrorAction SilentlyContinue
+        $portCheck = Get-NetTCPConnection -LocalPort $script:ServerPort -ErrorAction SilentlyContinue
         if ($portCheck) {
             break
         }
     }
 
-    # 自动打开浏览器
     Write-Host ""
     Write-Host "  [信息] 正在打开浏览器..." -ForegroundColor Cyan
-    Start-Process "http://localhost:3210"
+    Start-Process "http://localhost:$($script:ServerPort)"
     Write-Host "  [信息] 浏览器已打开" -ForegroundColor Green
     Write-Host ""
     Write-Host "  提示: 关闭此窗口将停止服务" -ForegroundColor Yellow
     Write-Host ""
-
-    # 保持窗口打开，等待用户关闭
     Write-Host "  按 Ctrl+C 停止服务，或关闭此窗口" -ForegroundColor DarkGray
     Write-Host ""
     
@@ -250,12 +290,13 @@ function Show-Help {
 function Show-MenuLoop {
     Show-Banner
     Show-Menu
-    $choice = Read-Host "  请选择 [0-3]"
+    $choice = Read-Host "  请选择 [0-4]"
     
     switch ($choice) {
         "1" { Start-Server }
         "2" { Show-Config }
         "3" { Show-Help }
+        "4" { Set-Port }
         "0" {
             Write-Host ""
             Write-Host "  再见!" -ForegroundColor Green

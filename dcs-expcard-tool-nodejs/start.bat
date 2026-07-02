@@ -1,41 +1,121 @@
 @echo off
-chcp 65001 >nul
 title ExpCard Converter
+color 0B
 
-echo ========================================
-echo    ExpCard Converter 启动脚本
-echo ========================================
+cls
+echo.
+echo    ===================================================
+echo    EEEEEEEE XXXXXXXX PPPPPPPP  CCCCCCCC  AAA  RRRRRR  DDDDDDD
+echo    EEE       XXX       PP    PP CC        AAAA  RR   RR DD    DD
+echo    EEE       XXX       PP    PP CC       AA  AA RR  RR  DD    DD
+echo    EEEEEEEE  XXXXXXXX  PPPPPPPP CC      AAAAAAAA RRRRRR  DD    DD
+echo    EEE       XXX       PP       CC      AA    AA RR  RR  DD    DD
+echo    EEE       XXX       PP       CC      AA    AA RR   RR DD    DD
+echo    EEEEEEEE  XXXXXXXX  PP        CCCCCCCC AA    AA RR    RR DDDDDDD
+echo    ===================================================
+echo                      [ Excel to Markdown ]
+echo.
+echo.
+echo    [1] Start Server
+echo    [2] Edit Config
+echo    [3] Help
+echo    [0] Exit
+echo.
+echo    ---------------------------------------------------
 echo.
 
-REM 检查 Node.js 是否安装
-node -v >nul 2>&1
-if errorlevel 1 (
-    echo ❌ 未检测到 Node.js，请先安装 Node.js
-    echo    下载地址: https://nodejs.org/
-    pause
-    exit /b 1
+set /p choice="    Select: "
+
+if "%choice%"=="1" goto start
+if "%choice%"=="2" goto config
+if "%choice%"=="3" goto help
+if "%choice%"=="0" goto exit
+
+echo.
+echo    [!] Invalid option
+timeout /t 2 >nul
+goto menu
+
+:start
+cls
+echo.
+echo    ===================================================
+echo                      Starting Server...
+echo    ===================================================
+echo.
+echo    Address : http://localhost:3210
+echo    Stop    : Ctrl+C
+echo.
+echo    ---------------------------------------------------
+echo.
+
+if exist "expcard-converter.exe" (
+    expcard-converter.exe
+) else (
+    node -v >nul 2>&1
+    if errorlevel 1 (
+        echo    [!] Node.js not found!
+        echo        Download: https://nodejs.org/
+        pause
+        exit /b 1
+    )
+    node server.js
 )
+goto end
 
-REM 检查配置文件是否存在
-if not exist "config.js" (
-    echo ℹ️  未找到 config.js，正在生成默认配置文件...
-    node init-config.js
-    echo.
+:config
+cls
+echo.
+echo    ===================================================
+echo                       Config File
+echo    ===================================================
+echo.
+echo    File : config.js
+echo.
+echo    Edit:
+echo      - LOGIC_OPERATORS
+echo      - SPECIAL_SEPARATORS
+echo      - SKIP_HEADERS
+echo      - SECTION_HEADERS
+echo.
+echo    Note: Restart server after edit.
+echo.
+echo    ---------------------------------------------------
+echo.
+if exist "config.js" (
+    echo    Opening config.js...
+    notepad config.js
+) else (
+    echo    [!] config.js not found!
 )
+pause
+goto menu
 
-REM 显示配置文件信息
-echo 📄 当前配置文件: config.js
-echo    如需修改，请编辑 config.js 后重新启动
+:help
+cls
 echo.
-
-REM 显示启动信息
-echo 🚀 正在启动服务器...
-echo    访问地址: http://localhost:3210
-echo    按 Ctrl+C 停止服务器
-echo ========================================
+echo    ===================================================
+echo                         Help
+echo    ===================================================
 echo.
+echo    1. Double click to start
+echo    2. Open http://localhost:3210
+echo    3. Upload .xlsx file
+echo    4. Select sheet and range
+echo    5. Click Convert
+echo    6. Preview and export
+echo.
+echo    Support:
+echo      - Sub-number mode (x.y format)
+echo      - Pure number mode (column nesting)
+echo.
+echo    ---------------------------------------------------
+echo.
+pause
+goto menu
 
-REM 启动服务器
-node server.js
+:exit
+exit /b 0
 
+:end
 pause

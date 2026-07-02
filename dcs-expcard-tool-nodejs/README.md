@@ -346,12 +346,49 @@ dcs-expcard-tool-nodejs/
 - 400：Markdown 内容为空
 - 500：Pandoc 转换失败
 
+## 打包为可执行文件
+
+使用 Node.js SEA（Single Executable Application）打包为独立 exe。
+
+### 环境要求
+
+- Node.js >= 20
+- Windows 操作系统
+
+### 打包步骤
+
+```bash
+# 1. 安装依赖
+npm install
+
+# 2. 执行打包
+npm run build
+```
+
+### 打包原理
+
+1. 生成 SEA blob 文件
+2. 复制 node.exe 为 expcard-converter.exe
+3. 使用 postject 将 blob 注入到 exe 中
+
+### 发布包结构
+
+打包后需要以下文件一起分发：
+
+```
+dist/
+├── expcard-converter.exe    # 主程序（约 50MB）
+├── config.js                # 配置文件（外置可修改）
+├── pandoc.exe               # Word 转换工具（约 20MB）
+└── start.bat                # 启动脚本
+```
+
 ## 技术栈
 
 - **前端**：纯 HTML/CSS/JS，xlsx.js（Excel 解析）、marked.js（Markdown 渲染）、JSZip
 - **后端**：Express.js（Node.js）
 - **转换**：Pandoc（Markdown → Word）
-- **打包**：支持 pkg 编译为独立 exe
+- **打包**：支持 SEA（Single Executable Application）编译为独立 exe
 
 ## 浏览器兼容性
 

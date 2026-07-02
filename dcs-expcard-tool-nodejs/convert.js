@@ -149,7 +149,11 @@ class ExpCardConverter {
   }
 
   _isLogicSeparator(text) {
-    return this.LOGIC_SEPARATORS.includes(text) || text in this.SPECIAL_SEPARATORS;
+    if (this.LOGIC_SEPARATORS.includes(text)) return true;
+    for (const key of Object.keys(this.SPECIAL_SEPARATORS)) {
+      if (text.startsWith(key)) return true;
+    }
+    return false;
   }
 
   _recordSpecialSeparators(row, rowIndex) {

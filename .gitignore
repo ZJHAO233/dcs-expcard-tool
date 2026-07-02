@@ -44,3 +44,6 @@ yarn-error.log*
 
 # 测试文件（可选）
 test/
+
+# 打包后文件
+dist/
